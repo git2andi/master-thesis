@@ -1,0 +1,90 @@
+% Version History
+% 2020-10-27  	    Holger Graf
+%                   Licence CC BY 4.0
+%					Link: https://www.overleaf.com/latex/templates/thesis-template-microeconomics-at-fsu-jena/shqhkgcqtvsn
+%					Accessed 18.01.2023
+% 2023-02-01		Adapted by Ines Rieger
+%					Licence CC BY 4.0
+%					Lehrstuhl für Erklärbares Maschinelles Lernen
+%					Universität Bamberg
+% Please adapt this tex file for your thesis
+
+\documentclass{xai-thesis}
+
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage{hyperref} % use \usepackage[hidelinks]{hyperref} to hide boxes
+\usepackage[utf8]{inputenc} % depends on the font encoding that you are using
+\usepackage[round]{natbib}
+
+\input{chapters/base/math_commands.tex}
+
+\begin{document}
+\thesisTitle{Comparative Analysis of Real-Time Object Detection Algorithms on Colonoscopy Video Datasets}
+\thesisType{Master Thesis} % 'Master Thesis' or 'Bachelor Thesis'
+\thesisAuthor{Andreas Franz Schwab}
+\thesisGrade{Master of Science in Applied Computer Science}
+\thesisFirstSupervisor{Prof\. Dr\. Christian Ledig} % your supervising professor
+\thesisSecondSupervisor{M.Sc Sebastian Dörrich} % if you are supervised by additional advisors, e.g phd students at the chair or a  supervisor in a company (write company after the name of the supervisor)
+\thesisDate{\today}
+
+% Print titlepage
+\thesisMakeTitle
+
+
+
+% ----------------------------------------------------------------------------
+% Base
+% ----------------------------------------------------------------------------
+\include{chapters/base/abstract}
+
+\clearpage
+%\thispagestyle{empty}
+\tableofcontents
+
+\include{chapters/base/helpers}
+
+% ----------------------------------------------------------------------------
+% Contents
+% ----------------------------------------------------------------------------
+\cleardoublepage
+\pagestyle{headings}
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+
+\include{chapters/introduction/introduction}
+\include{chapters/background/background}
+\include{chapters/dataset/datasets}
+\include{chapters/methodology/methodology}
+\include{chapters/experiments_results/results}
+\include{chapters/tool/tool}
+\include{chapters/discussion/discussion}
+\include{chapters/conclusion/conclusion}
+
+
+% --------------------------
+\clearpage
+\begin{appendix}
+	\section{Appendix}
+	If needed for supplementary material, such as detailed description of data collection, tables, or figures.
+	
+\end{appendix}
+
+% ----------------------------------------------------------------------------
+% Bibliography
+% ----------------------------------------------------------------------------
+\clearpage
+\renewcommand\refname{Bibliography}
+\addcontentsline{toc}{section}{Bibliography}
+\bibliography{bibliography}
+\bibliographystyle{plainnat}
+
+% ----------------------------------------------------------------------------
+% Statutory declaration
+% ----------------------------------------------------------------------------
+\clearpage
+\makeThesisDeclaration
+
+\end{document}
+
