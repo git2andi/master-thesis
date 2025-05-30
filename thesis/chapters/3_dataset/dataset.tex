@@ -7,3 +7,47 @@
     3.2 Supplemental Datasets Overview of public datasets used for validation: Kvasir, CVC-ClinicVideoDB, ASU-Mayo, SUN, LDPolypVideo. Differences in resolution, annotation styles, and video quality.
 
     3.3 Preprocessing and Frame Sampling Frame extraction, balancing strategies (negative/positive), and annotation normalization. Data augmentation techniques used.
+
+\subsection*{RealCOLON}
+text
+
+\subsection*{Secondary Datasets}
+\subsubsection*{SUN}
+The SUN database (//TODO/: Cite) is a large, publicly available colonoscopy video dataset developed for benchmarking AI-based polyp detection systems in endoscopy. Collected from five academic centers in Japan, SUN comprises 152,560 annotated frames—49,799 with polyps and 102,761 without—sampled from 1,405 patient cases, yielding 100 unique expert-annotated polyps. High-definition endoscopes (Olympus CF-HQ290ZI and CF-H290ECI, IMH-10 recorder) were used for acquisition.
+
+Each frame was individually labeled for polyp presence with bounding boxes by three research assistants, then validated and corrected by two experienced endoscopists. To further minimize bias, an external committee conducted random quality audits under contract research organization supervision.
+
+A key feature of SUN is its clinical realism and diversity: all frames are extracted from unselected clinical videos rather than curated still images, covering a range of polyp morphologies (diminutive, protruded, flat) and pathologies. Primary evaluation metrics include per-polyp and per-frame sensitivity and specificity. The original YOLOv3-based benchmark achieved 98.0\% per-polyp sensitivity and 93.7\% per-frame specificity.
+
+Training protocols included augmentation (vertical/horizontal flipping, sharpness, and brightness changes), L2 normalization, and a learning rate schedule. While SUN provides a substantial volume of clinically relevant data, its focus on polyp-containing videos may introduce a bias due to underrepresentation of negative cases (i.e., patients without polyps).
+
+
+\subsubsection*{ENDOTEST}
+
+Private, not accessiable
+ENDOTEST (//TODO/: Cite) is a publicly introduced, video-based colonoscopy benchmark dataset specifically designed to evaluate and compare computer-aided polyp detection systems (CADe) in realistic clinical scenarios. The dataset consists of two main components: a balanced validation set with 48 video snippets (22,856 manually annotated frames, $\sim$53\% with polyps), and a performance set comprising 10 full-length screening colonoscopies (230,898 frames, 15.8\% with polyps). All frames were annotated for polyp presence by expert endoscopists using bounding boxes.
+
+The unique strength of ENDOTEST is its clinical realism—full-length colonoscopy videos are included, not just curated polyp sequences, allowing for a more representative assessment of detection performance and false positives in real-world settings. The data were acquired from two medical centers using Olympus CV-190 endoscopy processors, and annotation protocols ensured rigorous manual labeling and quality control.
+
+ENDOTEST was used to benchmark both commercial (GI-Genius, Medtronic) and research (ENDOMIND, YOLOv5-based) CADe systems. Primary evaluation metrics include, per-frame sensitivity and specificity, precision, accuracy, F1-score, and notably, the first detection time (FDT), which measures detection latency from the polyp's first appearance.
+
+In benchmark results, ENDOMIND achieved higher per-frame sensitivity (54\% vs. 48.1\% for GI-Genius) and faster median FDT (217ms vs. 1050ms), though at the cost of more false positives. ENDOTEST thus provides a rigorous, clinically meaningful platform for preclinical testing and comparison of polyp detection algorithms, addressing the need for realistic video-based benchmarks.
+
+%ENDOMINT
+%Early stopping, dropout (30\%) 
+%Augmentations: flippting, rotating, translation, scaling, mosaic augmentation
+
+
+
+
+
+\subsubsection*{PolypDB}
+
+PolypDB (//TODO/: Cit) is a public, multi-center, multi-modality colonoscopy image dataset designed to enable robust development and benchmarking of AI algorithms for polyp detection and segmentation. The dataset includes 3,934 expert-annotated images from three medical centers in Norway, Sweden and Vietnam. PolypDB contains images acquired with five different imaging modalities: White Light Imaging (WLI), Blue Light Imaging (BLI), Flexible Imaging Color Enhancement (FICE), Linked Color Imaging (LCI) and Narrow Band Imaging (NBI). Each image is annotated with both bounding box annotations and pixel-accurate segmentation masks, and the quality of the annotations has been confirmed by several gastroenterologists and senior reviewers.
+
+Strict inclusion and exclusion criteria ensure clinical relevance and high quality; images with resected polyps, poor visibility, or ambiguity were removed. Annotation was performed using Labelbox, with rigorous cross-checking. The dataset is split 80/10/10 for training, validation, and testing; images are resized to 512$\times$512 for segmentation and 640$\times$480 for detection.
+
+Benchmarking covers five state-of-the-art detection models (YOLOv5 – v10) and federated learning scenarios. Segmentation and detection pipelines use extensive data augmentation and standard deep learning protocols. Primary evaluation metrics are mean Intersection-over-Union (mIoU), mean Dice Similarity Coefficient (mDSC), recall, precision, and F2 score. Top models achieve mIoU above 0.88 (segmentation) and mAP$_{50}$ up to 0.92 (detection) on WLI images. PolypDB thus sets a new standard for diversity and clinical relevance in the evaluation of polyp detection algorithms.
+
+% PolypDB was evaluated with five state-of-the-art object detection models (YOLOv5 - v10) and in federated learning settings across the three centers. Segmentation experiments utilized a range of augmentations (rotation, horizontal/vertical flipping, coarse dropout), binary cross-entropy and dice loss with Adam optimizer (learning rate $1 \times 10^{-4}$, 200 epochs, batch size 12, early stopping, ReduceLROnPlateau). Detection experiments used augmentations including random flipping, rotation, blur, mixup, mosaic, and cutmix, trained with AdamW (learning rate $1 \times 10^{-4}$, batch size 16).
+
