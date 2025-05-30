@@ -1,33 +1,33 @@
 This is BibTeX, Version 0.99d
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: thesis.aux
-Reallocating 'name_of_file' (item size: 1) to 27 items.
-A level-1 auxiliary file: chapters/base/abstract.aux
-Reallocating 'name_of_file' (item size: 1) to 26 items.
-A level-1 auxiliary file: chapters/base/helpers.aux
-Reallocating 'name_of_file' (item size: 1) to 39 items.
-A level-1 auxiliary file: chapters/introduction/introduction.aux
-Reallocating 'name_of_file' (item size: 1) to 35 items.
-A level-1 auxiliary file: chapters/background/background.aux
-Reallocating 'name_of_file' (item size: 1) to 30 items.
-A level-1 auxiliary file: chapters/dataset/datasets.aux
-Reallocating 'name_of_file' (item size: 1) to 37 items.
-A level-1 auxiliary file: chapters/methodology/methodology.aux
+Reallocating 'name_of_file' (item size: 1) to 29 items.
+A level-1 auxiliary file: chapters/0_base/abstract.aux
+Reallocating 'name_of_file' (item size: 1) to 28 items.
+A level-1 auxiliary file: chapters/0_base/helpers.aux
 Reallocating 'name_of_file' (item size: 1) to 41 items.
-A level-1 auxiliary file: chapters/experiments_results/results.aux
-Reallocating 'name_of_file' (item size: 1) to 23 items.
-A level-1 auxiliary file: chapters/tool/tool.aux
-Reallocating 'name_of_file' (item size: 1) to 35 items.
-A level-1 auxiliary file: chapters/discussion/discussion.aux
-Reallocating 'name_of_file' (item size: 1) to 35 items.
-A level-1 auxiliary file: chapters/conclusion/conclusion.aux
+A level-1 auxiliary file: chapters/1_introduction/introduction.aux
+Reallocating 'name_of_file' (item size: 1) to 37 items.
+A level-1 auxiliary file: chapters/2_background/background.aux
+Reallocating 'name_of_file' (item size: 1) to 31 items.
+A level-1 auxiliary file: chapters/3_dataset/dataset.aux
+Reallocating 'name_of_file' (item size: 1) to 39 items.
+A level-1 auxiliary file: chapters/4_methodology/methodology.aux
+Reallocating 'name_of_file' (item size: 1) to 43 items.
+A level-1 auxiliary file: chapters/5_experiments_results/results.aux
+Reallocating 'name_of_file' (item size: 1) to 25 items.
+A level-1 auxiliary file: chapters/6_tool/tool.aux
+Reallocating 'name_of_file' (item size: 1) to 37 items.
+A level-1 auxiliary file: chapters/7_discussion/discussion.aux
+Reallocating 'name_of_file' (item size: 1) to 37 items.
+A level-1 auxiliary file: chapters/8_conclusion/conclusion.aux
 Reallocating 'name_of_file' (item size: 1) to 13 items.
 Reallocating 'name_of_file' (item size: 1) to 9 items.
 The style file: plainnat.bst
 Database file #1: bibliography.bib
 You've used 2 entries,
             2773 wiz_defined-function locations,
-            615 strings with 5365 characters,
+            615 strings with 5384 characters,
 and the built_in function-call counts, 946 in all, are:
 = -- 76
 > -- 60
