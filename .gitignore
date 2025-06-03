@@ -1,8 +1,28 @@
-dataset/
-output/
-etc/
+# virtual environment
+.venv/
+
+# Python cache
 __pycache__/
-*.pyc
+*.py[cod]
+*.so
+
+# Notebook junk
 .ipynb_checkpoints/
+
+# Logs and dumps
 *.log
+*.out
+
+# IDE/Editor files
+.vscode/
+.idea/
+
+# Local dev environment
 .env
+
+# Data & output
+data/
+output/
+results/
+models/
+checkpoints/
