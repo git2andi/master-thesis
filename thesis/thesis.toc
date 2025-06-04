@@ -4,10 +4,10 @@
 \contentsline {section}{\numberline {1}Introduction}{1}{section.1}%
 \contentsline {section}{\numberline {2}Background and Related Work}{2}{section.2}%
 \contentsline {section}{\numberline {3}Dataset}{3}{section.3}%
-\contentsline {section}{\numberline {4}Methodology}{6}{section.4}%
-\contentsline {section}{\numberline {5}Results and Analysis}{7}{section.5}%
-\contentsline {section}{\numberline {6}Real-Time Visualization Tool}{8}{section.6}%
-\contentsline {section}{\numberline {7}Discussion}{9}{section.7}%
-\contentsline {section}{\numberline {8}Conclusion}{10}{section.8}%
-\contentsline {section}{\numberline {A}Appendix}{11}{appendix.A}%
-\contentsline {section}{Bibliography}{12}{appendix.A}%
+\contentsline {section}{\numberline {4}Methodology}{7}{section.4}%
+\contentsline {section}{\numberline {5}Results and Analysis}{8}{section.5}%
+\contentsline {section}{\numberline {6}Real-Time Visualization Tool}{9}{section.6}%
+\contentsline {section}{\numberline {7}Discussion}{10}{section.7}%
+\contentsline {section}{\numberline {8}Conclusion}{11}{section.8}%
+\contentsline {section}{\numberline {A}Appendix}{12}{appendix.A}%
+\contentsline {section}{Bibliography}{13}{appendix.A}%

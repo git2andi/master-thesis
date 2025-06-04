@@ -1,0 +1,9 @@
+\subsubsection*{SUN}
+
+The SUN (Showa University and Nagoya University) dataset is one of the largest publicly available colonoscopy video datasets, specifically designed to benchmark real-time AI-assisted polyp detection systems. It comprises 152{,}560 video frames, of which 49{,}799 contain visible polyps and 102{,}761 are negative samples. The data were extracted from 1405 colonoscopy procedures, with 100 independent polyps included in the final selection.
+
+All frames were annotated with bounding boxes by three research assistants, then validated and corrected by two expert endoscopists. Additionally, a quality assurance process involving a blinded review by an external committee of experienced gastroenterologists was implemented, supervised by a contract research organization to ensure labeling integrity.
+
+The dataset includes metadata for each polyp, including size, shape (e.g., protruded or flat), and pathology (e.g., low-grade or high-grade adenoma, carcinoma). Videos were recorded using Olympus high-definition endoscopes, ensuring consistency in image quality.
+
+The SUN dataset was used to develop and evaluate an AI system based on the YOLOv3 architecture, optimized for real-time detection ($\approx$30 FPS). The system achieved 98.0\% sensitivity at the polyp level and 90.5\% sensitivity with 93.7\% specificity at the frame level. The authors emphasize the need for realistic and standardized benchmarks and explicitly designed SUN to fulfill this role, making it a critical resource for assessing detection performance under clinical constraints.
