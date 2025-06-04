@@ -1,0 +1,9 @@
+\subsubsection*{KUMC}
+
+The KUMC dataset was created to benchmark polyp detection and classification systems, with a specific focus on distinguishing between adenomatous and hyperplastic polyps. It combines data from four sources—including MICCAI 2017, CVC colon datasets, GLRC, and a newly curated KUMC video set—resulting in 155 colonoscopy video sequences and a total of 37{,}899 annotated frames.
+
+All frames were annotated with bounding boxes and class labels by three trained endoscopists and validated to ensure consistency. To avoid redundancy and overfitting, the authors applied adaptive frame sampling and excluded poor-quality frames. Importantly, videos were split at the sequence level to prevent data leakage between training and test sets.
+
+A broad range of state-of-the-art object detection models were evaluated on this dataset, including Faster R-CNN, YOLOv3 and v4, RetinaNet, RefineDet, ATSS, and DetNet. Both frame-level and video-level classification metrics were reported, with RefineDet achieving the best performance in terms of F1-score and average precision. In the one-class (polyp vs. background) task, RefineDet reached an F1-score of 88.6\% at 32 FPS.
+
+The KUMC dataset is particularly valuable for studying the real-world robustness of detection systems and their clinical relevance, as it provides both detection and pathology-aware classification tasks. Its comprehensive model comparisons and consistent validation protocols make it a strong candidate for benchmarking in diagnostic settings.

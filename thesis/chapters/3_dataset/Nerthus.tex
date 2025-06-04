@@ -1,0 +1,9 @@
+\subsubsection*{Nerthus}
+
+The Nerthus dataset addresses a clinically important but underrepresented task in colonoscopy AI: the automated assessment of bowel preparation quality. It contains 21 colonoscopy video sequences, yielding a total of 5{,}525 annotated frames from the left colon. Each frame is labeled according to the Boston Bowel Preparation Scale (BBPS), with scores ranging from 0 (completely unvisualizable) to 3 (excellent visibility).
+
+Annotations were performed by experienced endoscopists, and a gold standard subset based on multi-expert consensus is planned for future release. The dataset was captured using Olympus equipment with ScopeGuide integration, providing consistent imaging and positional tracking.
+
+Baseline experiments explored a wide range of models, including traditional machine learning methods using handcrafted global features, shallow and deep convolutional neural networks, and a transfer learning setup based on Inception v3. The best-performing system—a logistic model tree using six global features—achieved an F1-score of 0.899 and real-time inference speed of 77 frames per second.
+
+In addition to standard classification metrics like accuracy, precision, recall, and Matthews Correlation Coefficient (MCC), the authors emphasized inference speed (FPS) to assess real-time applicability. Nerthus is particularly relevant for quality control and documentation systems in colonoscopy and offers a unique benchmark for evaluating classification models under clinical constraints.
