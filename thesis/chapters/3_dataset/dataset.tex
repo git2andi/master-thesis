@@ -12,17 +12,10 @@
 text
 
 \subsection*{Secondary Datasets}
-\subsubsection*{SUN}
-The SUN database (//TODO/: Cite) is a large, publicly available colonoscopy video dataset developed for benchmarking AI-based polyp detection systems in endoscopy. Collected from five academic centers in Japan, SUN comprises 152,560 annotated frames—49,799 with polyps and 102,761 without—sampled from 1,405 patient cases, yielding 100 unique expert-annotated polyps. High-definition endoscopes (Olympus CF-HQ290ZI and CF-H290ECI, IMH-10 recorder) were used for acquisition.
-
-Each frame was individually labeled for polyp presence with bounding boxes by three research assistants, then validated and corrected by two experienced endoscopists. To further minimize bias, an external committee conducted random quality audits under contract research organization supervision.
-
-A key feature of SUN is its clinical realism and diversity: all frames are extracted from unselected clinical videos rather than curated still images, covering a range of polyp morphologies (diminutive, protruded, flat) and pathologies. Primary evaluation metrics include per-polyp and per-frame sensitivity and specificity. The original YOLOv3-based benchmark achieved 98.0\% per-polyp sensitivity and 93.7\% per-frame specificity.
-
-Training protocols included augmentation (vertical/horizontal flipping, sharpness, and brightness changes), L2 normalization, and a learning rate schedule. While SUN provides a substantial volume of clinically relevant data, its focus on polyp-containing videos may introduce a bias due to underrepresentation of negative cases (i.e., patients without polyps).
-
+\include{chapters/3_dataset/LDPolypVideo}
 
 \subsubsection*{ENDOTEST}
+
 
 Private, not accessiable
 ENDOTEST (//TODO/: Cite) is a publicly introduced, video-based colonoscopy benchmark dataset specifically designed to evaluate and compare computer-aided polyp detection systems (CADe) in realistic clinical scenarios. The dataset consists of two main components: a balanced validation set with 48 video snippets (22,856 manually annotated frames, $\sim$53\% with polyps), and a performance set comprising 10 full-length screening colonoscopies (230,898 frames, 15.8\% with polyps). All frames were annotated for polyp presence by expert endoscopists using bounding boxes.
