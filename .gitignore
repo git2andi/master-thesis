@@ -26,3 +26,4 @@ output/
 results/
 models/
 checkpoints/
+yolov5/
