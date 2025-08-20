@@ -15,8 +15,8 @@ from PIL import Image, ImageOps  # pip install pillow
 # CONFIG
 # =========================
 SRC = "/data/local/aschwab/data/realColon"                  # root with frames/ and annotations/
-DST = "/data/local/aschwab/data/realColon_600x600"  # output root
-IMG_SIZE = 600
+DST = "/data/local/aschwab/data/realColon_300x300"  # output root
+IMG_SIZE = 300
 PADDING_COLOR = (114, 114, 114)
 
 # Keep a single class for detection (polyp vs background), but the source XML uses "lesion".
