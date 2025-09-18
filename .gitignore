@@ -27,3 +27,10 @@ results/
 models/
 checkpoints/
 yolov5/
+realColon_thesis/
+
+ultralytics/
+yolov5/
+wandb/
+
+*.pt

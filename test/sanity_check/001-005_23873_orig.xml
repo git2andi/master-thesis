@@ -1,0 +1,25 @@
+<annotation>
+  <folder>001-005_frames</folder>
+  <filename>001-005_23873.jpg</filename>
+  <source>
+    <database>cosmoimd</database>
+    <release>v1.0_20230228</release>
+  </source>
+  <version_fmt>1.0</version_fmt>
+  <size>
+    <width>1352</width>
+    <height>1080</height>
+    <depth>3</depth>
+  </size>
+  <object>
+    <name>lesion</name>
+    <unique_id>001-005_1</unique_id>
+    <box_id>0</box_id>
+    <bndbox>
+      <xmin>205</xmin>
+      <xmax>430</xmax>
+      <ymin>955</ymin>
+      <ymax>1076</ymax>
+    </bndbox>
+  </object>
+</annotation>
