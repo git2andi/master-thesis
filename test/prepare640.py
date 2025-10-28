@@ -6,20 +6,36 @@ import xml.etree.ElementTree as ET
 from glob import glob
 from pathlib import Path
 from shutil import rmtree
-from typing import Tuple, List, Dict
+from typing import Tuple, List, Dict, Iterable, Optional
 
 from PIL import Image, ImageOps  # pip install pillow
 
 # =========================
 # CONFIG
 # =========================
-SRC = "/data/local/aschwab/data/realColon"                  # root with frames/ and annotations/
-DST = "/data/local/aschwab/data/realColon_640x640"          # output root
+# Root with frames/ and annotations/
+SRC = "/data/local/aschwab/data/realColon"
+# Base output root for the full dataset; subsets will append suffixes to this
+DST = "/data/local/aschwab/data/realColon_640x640"
 IMG_SIZE = 640
 PADDING_COLOR = (114, 114, 114)
 
-CLASS_MAP = {"lesion": 0}  # VOC "lesion" → YOLO class 0 → COCO category 0
+# VOC "lesion" → YOLO class 0 → COCO category 0
+CLASS_MAP = {"lesion": 0}
 
+# Control whether to (re)build the full dataset at DST as well.
+# Default False to avoid wiping an existing full build; set True if you want to regenerate it.
+BUILD_FULL = False
+
+# Subsets to produce next to the full dataset (always (re)built when you run the script).
+# Semantics: name suffix, allowed cohort/institution ids (sss in "sss-vvv").
+SUBSETS = [
+    ("i1", {1}),
+    ("i2", {2}),
+    ("i3", {3}),
+    ("i4", {4}),
+    ("1_3", {1, 2, 3}),
+]
 
 # =========================
 # HELPERS
@@ -78,11 +94,12 @@ def parse_vid_id(path_stem: str) -> tuple:
 
 
 def build_split(video_ids: List[str]) -> Dict[str, str]:
+    """Return a map vid → split (train/val/test) per institution by vvv ranges."""
     by_cohort: Dict[int, List[int]] = {}
     for vid in video_ids:
         sss, vvv = parse_vid_id(vid)
         by_cohort.setdefault(sss, []).append(vvv)
-    split_map = {}
+    split_map: Dict[str, str] = {}
     for sss, vvvs in by_cohort.items():
         vvvs = sorted(vvvs)
         for v in vvvs:
@@ -105,38 +122,52 @@ val:   {os.path.join(dst_root, 'images/val')}
 test:  {os.path.join(dst_root, 'images/test')}
 
 nc: 1
-names: ["polyp"]
+names: ["lesion"]
 """)
     print(f"✔ Wrote {yaml_path}")
 
 
 # =========================
-# MAIN
+# CORE
 # =========================
-if __name__ == "__main__":
-    # Clean output
-    if os.path.exists(DST):
-        print(f"Removing existing folder: {DST}")
-        rmtree(DST)
-    for sp in ("train", "val", "test"):
-        os.makedirs(os.path.join(DST, "images", sp), exist_ok=True)
-        os.makedirs(os.path.join(DST, "labels", sp), exist_ok=True)
 
-    # Prepare COCO dicts
+def process_subset(dst_root: str, allowed_sss: Optional[Iterable[int]] = None) -> None:
+    """Build a dataset to dst_root, optionally filtering to cohorts in allowed_sss.
+    - Resizes from SRC (letterbox 640×640)
+    - Writes YOLO labels and COCO JSONs
+    - Keeps the original train/val/test per-institution split policy
+    """
+    # Clean output for this subset only
+    if os.path.exists(dst_root):
+        print(f"Removing existing folder: {dst_root}")
+        rmtree(dst_root)
+    for sp in ("train", "val", "test"):
+        os.makedirs(os.path.join(dst_root, "images", sp), exist_ok=True)
+        os.makedirs(os.path.join(dst_root, "labels", sp), exist_ok=True)
+
+    # Prepare COCO dicts (category name switched to "lesion")
     coco_by_split = {
-        "train": {"images": [], "annotations": [], "categories": [{"id": 0, "name": "polyp"}]},
-        "val":   {"images": [], "annotations": [], "categories": [{"id": 0, "name": "polyp"}]},
-        "test":  {"images": [], "annotations": [], "categories": [{"id": 0, "name": "polyp"}]},
+        "train": {"images": [], "annotations": [], "categories": [{"id": 0, "name": "lesion"}]},
+        "val":   {"images": [], "annotations": [], "categories": [{"id": 0, "name": "lesion"}]},
+        "test":  {"images": [], "annotations": [], "categories": [{"id": 0, "name": "lesion"}]},
     }
     ann_id_counter = {"train": 0, "val": 0, "test": 0}
 
     # Discover videos
     frame_folders = sorted(glob(os.path.join(SRC, "frames", "*_frames")))
-    anno_folders = sorted(glob(os.path.join(SRC, "annotations", "*_annotations")))
-    video_ids = sorted([Path(f).stem.replace("_frames", "") for f in frame_folders])
+    video_ids_all = sorted([Path(f).stem.replace("_frames", "") for f in frame_folders])
 
-    assert len(video_ids) == 60, f"Expected 60 videos, found {len(video_ids)}"
-    print(f"Found {len(video_ids)} videos.")
+    # Filter by allowed institutions if provided
+    if allowed_sss is not None:
+        allowed_sss = set(int(x) for x in allowed_sss)
+        video_ids = [vid for vid in video_ids_all if parse_vid_id(vid)[0] in allowed_sss]
+    else:
+        video_ids = list(video_ids_all)
+
+    if not video_ids:
+        raise RuntimeError("No videos selected for this subset; check allowed_sss filter.")
+
+    print(f"Selected {len(video_ids)} videos for {dst_root}.")
 
     split_map = build_split(video_ids)
 
@@ -164,7 +195,7 @@ if __name__ == "__main__":
                 continue
 
             img_out, r, pad_l, pad_t = letterbox_pil(img, new_shape=IMG_SIZE, color=PADDING_COLOR)
-            out_img = os.path.join(DST, "images", split, f"{base}.jpg")
+            out_img = os.path.join(dst_root, "images", split, f"{base}.jpg")
 
             # COCO bookkeeping
             img_id = len(coco_by_split[split]["images"]) + 1
@@ -227,7 +258,7 @@ if __name__ == "__main__":
 
             # save image + YOLO label
             img_out.save(out_img, format="JPEG", quality=95, subsampling=0)
-            out_lbl = os.path.join(DST, "labels", split, f"{base}.txt")
+            out_lbl = os.path.join(dst_root, "labels", split, f"{base}.txt")
             with open(out_lbl, "w") as f:
                 f.write("\n".join(lines))
 
@@ -236,15 +267,29 @@ if __name__ == "__main__":
         print(f"✅ {vid} → {split} ({len(img_paths)} frames)")
 
     # Write YOLO configs
-    write_yaml_files(DST)
+    write_yaml_files(dst_root)
 
     # Dump COCO JSONs
     for sp in ("train", "val", "test"):
-        out_json = os.path.join(DST, f"annotations_coco_{sp}.json")
+        out_json = os.path.join(dst_root, f"annotations_coco_{sp}.json")
         with open(out_json, "w") as f:
             json.dump(coco_by_split[sp], f, indent=2)
         print(f"✔ Wrote {out_json}")
 
     print(f"\nDone. Converted {processed} frames.")
     print(f"Missing-XML frames: {skipped_xml}, XML-parse skips: {skipped_parse}")
-    print(f"Dataset ready at: {DST}")
+    print(f"Dataset ready at: {dst_root}")
+
+
+# =========================
+# MAIN
+# =========================
+if __name__ == "__main__":
+    # Optional: rebuild the full 4-institution dataset
+    if BUILD_FULL:
+        process_subset(DST, allowed_sss=None)
+
+    # Always build the requested subsets next to DST
+    for suffix, allowed in SUBSETS:
+        dst_root = f"{DST}_{suffix}"
+        process_subset(dst_root, allowed_sss=allowed)

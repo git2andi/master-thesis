@@ -28,9 +28,19 @@ models/
 checkpoints/
 yolov5/
 realColon_thesis/
+masterThesis/
+other_datasets/
 
+test/audit*/
+test/verify_labels_output/
+
+mmdetection/
 ultralytics/
 yolov5/
 wandb/
+
+RT-DETRv2/
+RepPointsV2/
+
 
 *.pt

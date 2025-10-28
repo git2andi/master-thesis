@@ -49,7 +49,7 @@ val:   {dst_root.as_posix()}/images/val
 test:  {dst_root.as_posix()}/images/test
 
 nc: 1
-names: ["polyp"]
+names: ["lesion"]
 """
     (dst_root / "data.yaml").write_text(yaml)
 

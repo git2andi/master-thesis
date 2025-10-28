@@ -1,0 +1,108 @@
+BASE="/data/local/aschwab/data/realColon"
+DST224="/data/local/aschwab/data/realColon_224x224"
+DST640="/data/local/aschwab/data/realColon_640x640"
+
+python3 - <<PY
+import os, json, xml.etree.ElementTree as ET
+from collections import defaultdict
+
+BASE="${BASE}"
+DSTS=[("224","${DST224}"),("640","${DST640}")]
+SPLITS=("train","val","test")
+
+def voc_count(xml_path):
+    try:
+        r=ET.parse(xml_path).getroot()
+        return sum(1 for obj in r.findall("object") if (obj.findtext("name") or "").lower()=="lesion")
+    except Exception:
+        return None  # missing or unreadable
+
+def summarize(size, dst):
+    summary = {"size":size, "splits":{}}
+    totals = defaultdict(int)
+
+    for split in SPLITS:
+        coco_path = os.path.join(dst, f"annotations_coco_{split}.json")
+        with open(coco_path,"r") as f: j=json.load(f)
+
+        # image_id -> filename / counts
+        id2name = {im["id"]: im["file_name"] for im in j["images"]}
+        coco_counts = defaultdict(int)
+        for a in j["annotations"]:
+            coco_counts[a["image_id"]] += 1
+
+        stats = dict(
+            images=len(j["images"]),
+            coco_boxes=len(j["annotations"]),
+            positives=sum(1 for im in j["images"] if coco_counts[im["id"]]>0),
+            negatives=sum(1 for im in j["images"] if coco_counts[im["id"]]==0),
+            xml_missing=0,
+            images_mismatch=0,  # coco count != voc count
+            coco_pos_voc_zero=0, # coco>0 but voc=0
+            coco_zero_voc_pos=0, # coco=0 but voc>0
+            voc_boxes_total=0
+        )
+
+        for im in j["images"]:
+            fn = im["file_name"]
+            coco_c = coco_counts[im["id"]]
+            video_id = fn.split("_",1)[0]
+            xml_path = os.path.join(BASE, "annotations", f"{video_id}_annotations", os.path.splitext(fn)[0]+".xml")
+            voc_c = voc_count(xml_path)
+            if voc_c is None:
+                stats["xml_missing"] += 1
+                continue
+            stats["voc_boxes_total"] += voc_c
+            if coco_c != voc_c:
+                stats["images_mismatch"] += 1
+                if coco_c>0 and voc_c==0: stats["coco_pos_voc_zero"] += 1
+                if coco_c==0 and voc_c>0: stats["coco_zero_voc_pos"] += 1
+
+        summary["splits"][split]=stats
+        for k,v in stats.items():
+            if k=="images" or k=="positives" or k=="negatives": totals[k]+=v
+            elif k in ("coco_boxes","voc_boxes_total","xml_missing","images_mismatch","coco_pos_voc_zero","coco_zero_voc_pos"):
+                totals[k]+=v
+    summary["overall"]=dict(totals)
+    return summary
+
+def fmt_block(title, s):
+    lines=[]
+    lines.append(f"{title}")
+    lines.append("-"*len(title))
+    hdr = "Split       Images   Positives  Negatives   COCO boxes   VOC boxes   XML miss   Img mismatch   COCO>0&VOC=0   COCO=0&VOC>0"
+    lines.append(hdr)
+    lines.append("-"*len(hdr))
+    for split,stats in s["splits"].items():
+        lines.append(f"{split:<11}{stats['images']:>7}   {stats['positives']:>9}  {stats['negatives']:>9}   {stats['coco_boxes']:>10}   {stats['voc_boxes_total']:>10}   {stats['xml_missing']:>8}   {stats['images_mismatch']:>12}   {stats['coco_pos_voc_zero']:>13}   {stats['coco_zero_voc_pos']:>13}")
+    o=s["overall"]
+    lines.append("-"*len(hdr))
+    lines.append(f"{'TOTAL':<11}{o['images']:>7}   {o['positives']:>9}  {o['negatives']:>9}   {o['coco_boxes']:>10}   {o['voc_boxes_total']:>10}   {o['xml_missing']:>8}   {o['images_mismatch']:>12}   {o['coco_pos_voc_zero']:>13}   {o['coco_zero_voc_pos']:>13}")
+    return "\n".join(lines)
+
+all_summaries=[]
+for size,dst in DSTS:
+    all_summaries.append(summarize(size,dst))
+
+print("\n\n".join(fmt_block(f"REAL-Colon {s['size']}x{s['size']} summary", s) for s in all_summaries))
+
+# Quick status hint
+issues = []
+for s in all_summaries:
+    o = s["overall"]
+    if o["xml_missing"]>0: issues.append(f"{s['size']}x{s['size']}: {o['xml_missing']} XML missing")
+    if o["images_mismatch"]>0: issues.append(f"{s['size']}x{s['size']}: {o['images_mismatch']} images with COCO≠VOC")
+    if o["coco_pos_voc_zero"]>0: issues.append(f"{s['size']}x{s['size']}: {o['coco_pos_voc_zero']} COCO>0 but VOC=0")
+    if o["coco_zero_voc_pos"]>0: issues.append(f"{s['size']}x{s['size']}: {o['coco_zero_voc_pos']} COCO=0 but VOC>0")
+
+print("\nStatus:")
+print("OK ✓" if not issues else " / ".join(issues))
+PY
+
+
+Snapshot the exact JSON sizes (quick provenance):
+wc -c /data/local/aschwab/data/realColon_*x*/annotations_coco_*.json
+
+Hash the COCO files:
+sha256sum /data/local/aschwab/data/realColon_*x*/annotations_coco_*.json \
+  > ~/master-thesis/test/annotations_sha256.txt

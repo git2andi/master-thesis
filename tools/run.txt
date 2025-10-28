@@ -1,0 +1,69 @@
+Step1:
+bash ~/master-thesis/tools/step1_init_and_frameap.sh \
+  --run y11s_224_s42_b1024_baseS \
+  --data /data/local/aschwab/data/realColon_224x224/data.yaml \
+  --imgsz 224 \
+  --device 0
+
+Step2:
+bash ~/master-thesis/tools/step2_dump_sweeps.sh \
+  --run y11s_224_s42_b1024_baseS \
+  --data /data/local/aschwab/data/realColon_224x224/data.yaml \
+  --imgsz 224 \
+  --device 0 \
+  --workers 16 \
+  --conf-dump 0.05 \
+  --iou-list "0.10,0.20,0.30,0.40,0.50,0.60" \
+  --max-det 300
+
+
+Step3:
+bash ~/master-thesis/tools/step3_event_froc_val.sh \
+  --run y11s_224_s42_b1024_baseS \
+  --data /data/local/aschwab/data/realColon_224x224/data.yaml \
+  --imgsz 224
+
+
+Step4:
+bash ~/master-thesis/tools/step4_lock_ops.sh \
+  --run y11s_224_s42_b1024_baseS \
+  --targets "2,4" \
+  --filter-liou 0.30 --filter-gap 3 --filter-minlen 2 \
+  --filter-miou 0.30 --filter-tapx 64
+
+
+Step5:
+bash ~/master-thesis/tools/step5_eval_test_locked_ops.sh \
+  --run y11s_224_s42_b1024_baseS \
+  --data /data/local/aschwab/data/realColon_224x224/data.yaml \
+  --imgsz 224 \
+  --ensure-dumps \
+  --device 0
+
+
+Step6:
+bash ~/master-thesis/tools/step6_speed.sh \
+  --run y11s_224_s42_b1024_baseS \
+  --data /data/local/aschwab/data/realColon_224x224/data.yaml \
+  --imgsz 224 --device 0 --fp16 --fp32
+
+optional
+bash ~/master-thesis/tools/step6_speed.sh \
+  --run y11s_224_s42_b1024_baseS \
+  --data /data/local/aschwab/data/realColon_224x224/data.yaml \
+  --imgsz 224 --device 0 \
+  --e2e-video /data/local/aschwab/data/realColon_raw/videos/val/001-001.mp4 \
+  --draw
+
+
+Step7:
+bash ~/master-thesis/tools/step7_hardneg_mine.sh \
+  --run y11s_224_s42_b1024_baseS \
+  --data /data/local/aschwab/data/realColon_224x224/data.yaml \
+  --imgsz 224 --device 0 \
+  --target-fpv 2.0 \
+  --suffix hardneg_v1 \
+  --per-video-cap 50 --total-cap 20000
+
+Step8:
+bash ~/master-thesis/tools/step8_reports.sh --run y11s_224_s42_b1024_baseS
