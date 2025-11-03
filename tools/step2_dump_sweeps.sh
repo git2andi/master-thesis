@@ -4,12 +4,14 @@
 #   Produce *superset* detections for later offline sweeps (Step 3).
 #   We vary NMS-IoU at dump-time, fix a low conf (e.g., 0.05), and high max_det.
 #
-# Usage:
+# Usage (batch is REQUIRED):
 #   bash step2_dump_sweeps.sh \
 #     --run y11m_224_s42_b512_baseM \
 #     --data /data/local/aschwab/data/realColon_224x224/data.yaml \
 #     --imgsz 224 \
-#     [--device "0"] [--workers 16] \
+#     --device "0" \
+#     --batch 64 \
+#     [--workers 16] \
 #     [--conf-dump 0.05] [--iou-list "0.20,0.30,0.40,0.50,0.60"] [--max-det 300] \
 #     [--include-test]
 #
@@ -26,6 +28,7 @@ RUN=""
 DATA=""
 IMGSZ=640
 DEVICE="0"
+BATCH=""
 WORKERS=16
 CONF_DUMP=0.05
 IOU_LIST="0.20,0.30,0.40,0.50,0.60"
@@ -41,6 +44,7 @@ while [[ $# -gt 0 ]]; do
     --data)        DATA="$2"; shift 2 ;;
     --imgsz)       IMGSZ="$2"; shift 2 ;;
     --device)      DEVICE="$2"; shift 2 ;;
+    --batch)       BATCH="$2"; shift 2 ;;
     --workers)     WORKERS="$2"; shift 2 ;;
     --conf-dump)   CONF_DUMP="$2"; shift 2 ;;
     --iou-list)    IOU_LIST="$2"; shift 2 ;;
@@ -50,7 +54,16 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-[[ -n "$RUN" && -n "$DATA" ]] || { echo "Usage: --run <RUN> --data <DATA_YAML> [--imgsz N]"; exit 2; }
+# -------- required args check --------
+if [[ -z "$RUN" || -z "$DATA" || -z "$BATCH" ]]; then
+  echo "Usage: --run <RUN> --data <DATA_YAML> --imgsz N --device ID --batch N [--workers N] [--conf-dump F] [--iou-list list] [--max-det N] [--include-test]" >&2
+  exit 2
+fi
+# numeric check for batch
+if ! [[ "$BATCH" =~ ^[0-9]+$ && "$BATCH" -gt 0 ]]; then
+  echo "Error: --batch must be a positive integer (got '$BATCH')." >&2
+  exit 2
+fi
 
 RUN_DIR="${RUN_ROOT}/${RUN}"
 [[ -d "$RUN_DIR" ]] || { echo "Run dir not found: $RUN_DIR"; exit 1; }
@@ -69,6 +82,7 @@ echo "Model     : $MODEL"
 echo "Data YAML : $DATA"
 echo "imgsz     : $IMGSZ"
 echo "Device    : $DEVICE"
+echo "Batch     : $BATCH"
 echo "Workers   : $WORKERS"
 echo "IoU list  : $IOU_LIST"
 echo "Conf dump : $CONF_DUMP"
@@ -93,16 +107,25 @@ dump_split() {
   fi
 
   echo ">> ${SPLIT}: IoU=${IOU}  conf=${CONF_DUMP}  max_det=${MAXDET}  -> ${TAG}"
-  yolo detect val \
-    model="$MODEL" data="$DATA" split="$SPLIT" imgsz="$IMGSZ" \
-    device="$DEVICE" workers="$WORKERS" \
-    conf="$CONF_DUMP" iou="$IOU" max_det="$MAXDET" \
-    save_txt=True save_conf=True save_json=True \
-    project="$DUMP_DIR" name="$TAG" verbose=True || true
-
-  # Minimal sanity
-  if [[ ! -s "${OUT}/predictions.json" && ! -d "${OUT}/labels" ]]; then
-    echo "!! dump failed for ${TAG} (no predictions.json or labels/)."; return 1
+  if ! yolo detect val \
+    model="$MODEL" \
+    data="$DATA" \
+    split="$SPLIT" \
+    imgsz="$IMGSZ" \
+    device="$DEVICE" \
+    workers="$WORKERS" \
+    batch="$BATCH" \
+    conf="$CONF_DUMP" \
+    iou="$IOU" \
+    max_det="$MAXDET" \
+    save_txt=True \
+    save_conf=True \
+    save_json=True \
+    project="$DUMP_DIR" \
+    name="$TAG" \
+    verbose=True
+  then
+    echo "!! YOLO val failed for ${TAG}" >&2
   fi
 }
 

@@ -1,15 +1,13 @@
 #!/usr/bin/env bash
-# Step 1 — Init (meta & sanity) + Frame-level metrics (VAL/TEST)
-# Usage:
+# Step 1 — Init (meta & sanity) + Frame-level metrics (VAL/TEST via Python API)
+# Usage (batch is REQUIRED):
 #   bash step1_init_and_frameap.sh \
 #     --run y11m_224_s42_b512_baseM \
 #     --data /data/local/aschwab/data/realColon_224x224/data.yaml \
 #     --imgsz 224 \
 #     --device 0 \
+#     --batch 64 \
 #     [--include-test]
-#
-# Outputs under:
-#   ~/master-thesis/masterThesis/<RUN>/pipeline/{meta,frame_ap}/...
 
 set -euo pipefail
 
@@ -18,6 +16,7 @@ RUN=""
 DATA=""
 IMGSZ=640
 DEVICE="0"
+BATCH=""                  # required; validated below
 INCLUDE_TEST=0
 RUN_ROOT="${HOME}/master-thesis/masterThesis"
 
@@ -28,12 +27,22 @@ while [[ $# -gt 0 ]]; do
     --data)          DATA="$2"; shift 2 ;;
     --imgsz)         IMGSZ="$2"; shift 2 ;;
     --device)        DEVICE="$2"; shift 2 ;;
+    --batch)         BATCH="$2"; shift 2 ;;   # REQUIRED
     --include-test)  INCLUDE_TEST=1; shift 1 ;;
     *) echo "Unknown arg: $1" >&2; exit 2 ;;
   esac
 done
 
-[[ -n "$RUN" && -n "$DATA" ]] || { echo "Usage: --run <RUN> --data <DATA_YAML> [--imgsz N] [--device 0] [--include-test]"; exit 2; }
+# ---------- required args check ----------
+if [[ -z "$RUN" || -z "$DATA" || -z "$BATCH" ]]; then
+  echo "Usage: --run <RUN> --data <DATA_YAML> --imgsz N --device ID --batch N [--include-test]" >&2
+  exit 2
+fi
+# numeric check for batch (positive integer)
+if ! [[ "$BATCH" =~ ^[0-9]+$ && "$BATCH" -gt 0 ]]; then
+  echo "Error: --batch must be a positive integer (got '$BATCH')." >&2
+  exit 2
+fi
 
 RUN_DIR="${RUN_ROOT}/${RUN}"
 [[ -d "$RUN_DIR" ]] || { echo "Run dir not found: $RUN_DIR"; exit 1; }
@@ -58,6 +67,7 @@ echo "Model       : $MODEL"
 echo "Data YAML   : $DATA"
 echo "imgsz       : $IMGSZ"
 echo "Device      : $DEVICE"
+echo "Batch       : $BATCH"     # required
 echo "Include TEST: $INCLUDE_TEST"
 echo "Out dirs    : $PIPE_DIR"
 
@@ -67,7 +77,6 @@ SANITY_TXT="${META_DIR}/sanity.txt"
 
 if [[ ! -s "$META_JSON" || ! -s "$SANITY_TXT" ]]; then
   echo ">> Capturing meta + sanity"
-  # GPU / system snapshot
   GPU_JSON_TMP="$(mktemp)"
   if command -v nvidia-smi >/dev/null 2>&1; then
     nvidia-smi --query-gpu=index,name,driver_version,memory.total,memory.free --format=csv,noheader,nounits \
@@ -76,20 +85,17 @@ if [[ ! -s "$META_JSON" || ! -s "$SANITY_TXT" ]]; then
     echo "[]" > "$GPU_JSON_TMP"
   fi
 
-  # Python env snapshot (torch, ultralytics)
   PY_JSON_TMP="$(mktemp)"
   python - <<'PY' > "$PY_JSON_TMP" 2>/dev/null
 import json, sys
-info = {
-  "python": sys.version.split()[0]
-}
+info = {"python": sys.version.split()[0]}
 try:
   import torch
   info.update({
     "torch": torch.__version__,
     "cuda_available": bool(torch.cuda.is_available()),
-    "cuda_version": torch.version.cuda if hasattr(torch.version,'cuda') else None,
-    "cudnn_version": torch.backends.cudnn.version() if hasattr(torch.backends,'cudnn') else None
+    "cuda_version": getattr(torch.version, "cuda", None),
+    "cudnn_version": getattr(getattr(torch.backends,"cudnn",None), "version", lambda: None)()
   })
 except Exception as e:
   info["torch_error"] = str(e)
@@ -101,9 +107,7 @@ except Exception as e:
 print(json.dumps(info, indent=2))
 PY
 
-  # Dataset sanity (counts)
-  # We try to infer base path from YAML 'path:' if present; otherwise trust relative structure
-  DS_BASE="$(awk '/^path:/ {print $2}' "$DATA" | tr -d "'\"")"
+  DS_BASE="$(awk '/^[[:space:]]*path:/ {print $2}' "$DATA" | tr -d "'\"")"
   {
     echo "# Sanity $(date -Iseconds)"
     echo "HOST: $(hostname)"
@@ -124,9 +128,8 @@ PY
     fi
   } > "$SANITY_TXT"
 
-  # Compose meta.json
   python - <<PY > "$META_JSON"
-import json, os, time, socket, sys
+import json, os, time, socket
 gpu = json.load(open("${GPU_JSON_TMP}"))
 py  = json.load(open("${PY_JSON_TMP}"))
 meta = {
@@ -137,6 +140,7 @@ meta = {
   "weights": "${MODEL}",
   "data_yaml": "${DATA}",
   "imgsz": ${IMGSZ},
+  "batch": ${BATCH},           # required → write the integer
   "device": "${DEVICE}",
   "gpu": gpu,
   "python_env": py
@@ -151,26 +155,27 @@ fi
 # ---------- frame-level VAL ----------
 VAL_SUM="${FRAP_DIR}/val_summary.json"
 if [[ ! -s "$VAL_SUM" ]]; then
-  echo ">> Running frame-level VAL"
-  yolo val \
-    model="$MODEL" data="$DATA" imgsz="$IMGSZ" device="$DEVICE" \
-    project="$VAL_DIR" name="ultra_val" || true
-
-  # Find results.csv produced by Ultralytics in $VAL_DIR/ultra_val/
-  VAL_CSV="$(find "$VAL_DIR/ultra_val" -maxdepth 1 -type f -name 'results.csv' | head -n1 || true)"
+  echo ">> Running frame-level VAL (Python API)"
   python - <<PY > "$VAL_SUM"
-import csv, json, os, glob
-csv_path = "${VAL_CSV}"
-out = {"csv_found": bool(csv_path), "mAP50": None, "mAP50_95": None}
-if csv_path and os.path.isfile(csv_path):
-    rows = list(csv.DictReader(open(csv_path, newline='')))
-    if rows:
-        # Ultralytics results.csv last row typically holds final metrics
-        last = rows[-1]
-        # Keys may vary slightly across versions
-        out["mAP50_95"] = float(last.get("metrics/mAP50-95(B)", last.get("map50-95", 0)) or 0)
-        out["mAP50"]     = float(last.get("metrics/mAP50(B)",     last.get("map50",     0)) or 0)
-out["csv_path"] = csv_path
+from ultralytics import YOLO
+import json
+model = YOLO(r"${MODEL}")
+res = model.val(
+    data=r"${DATA}",
+    imgsz=${IMGSZ},
+    device=r"${DEVICE}",
+    split="val",
+    batch=${BATCH},             # required → pass as int
+    project=r"${VAL_DIR}",
+    name="ultra_val",
+    save_json=False,
+    verbose=True
+)
+out = {
+  "results": getattr(res, "results_dict", {}),
+  "speed": getattr(res, "speed", None),
+  "save_dir": str(getattr(res, "save_dir", "")),
+}
 print(json.dumps(out, indent=2))
 PY
 else
@@ -180,24 +185,29 @@ fi
 # ---------- frame-level TEST (optional) ----------
 if [[ $INCLUDE_TEST -eq 1 ]]; then
   TST_SUM="${FRAP_DIR}/test_summary.json"
+  mkdir -p "$TST_DIR"
   if [[ ! -s "$TST_SUM" ]]; then
-    echo ">> Running frame-level TEST"
-    yolo val \
-      model="$MODEL" data="$DATA" imgsz="$IMGSZ" device="$DEVICE" split=test \
-      project="$TST_DIR" name="ultra_test" || true
-
-    TST_CSV="$(find "$TST_DIR/ultra_test" -maxdepth 1 -type f -name 'results.csv' | head -n1 || true)"
+    echo ">> Running frame-level TEST (Python API)"
     python - <<PY > "$TST_SUM"
-import csv, json, os
-csv_path = "${TST_CSV}"
-out = {"csv_found": bool(csv_path), "mAP50": None, "mAP50_95": None}
-if csv_path and os.path.isfile(csv_path):
-    rows = list(csv.DictReader(open(csv_path, newline='')))
-    if rows:
-        last = rows[-1]
-        out["mAP50_95"] = float(last.get("metrics/mAP50-95(B)", last.get("map50-95", 0)) or 0)
-        out["mAP50"]     = float(last.get("metrics/mAP50(B)",     last.get("map50",     0)) or 0)
-out["csv_path"] = csv_path
+from ultralytics import YOLO
+import json
+model = YOLO(r"${MODEL}")
+res = model.val(
+    data=r"${DATA}",
+    imgsz=${IMGSZ},
+    device=r"${DEVICE}",
+    split="test",
+    batch=${BATCH},             # required → pass as int
+    project=r"${TST_DIR}",
+    name="ultra_test",
+    save_json=False,
+    verbose=False
+)
+out = {
+  "results": getattr(res, "results_dict", {}),
+  "speed": getattr(res, "speed", None),
+  "save_dir": str(getattr(res, "save_dir", "")),
+}
 print(json.dumps(out, indent=2))
 PY
   else

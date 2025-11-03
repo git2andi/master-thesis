@@ -1,27 +1,32 @@
 Step1:
 bash ~/master-thesis/tools/step1_init_and_frameap.sh \
-  --run y11s_224_s42_b1024_baseS \
-  --data /data/local/aschwab/data/realColon_224x224/data.yaml \
-  --imgsz 224 \
-  --device 0
+  --run y11m_640_s42_b208_baseM \
+  --data /data/local/aschwab/data/realColon_640x640/data.yaml \
+  --imgsz 640 \
+  --batch 208 \
+  --device 1
+
 
 Step2:
 bash ~/master-thesis/tools/step2_dump_sweeps.sh \
-  --run y11s_224_s42_b1024_baseS \
-  --data /data/local/aschwab/data/realColon_224x224/data.yaml \
-  --imgsz 224 \
-  --device 0 \
+  --run y11m_640_s42_b208_baseM \
+  --data /data/local/aschwab/data/realColon_640x640/data.yaml \
+  --imgsz 640 \
+  --batch 208 \
+  --device 1 \
   --workers 16 \
   --conf-dump 0.05 \
   --iou-list "0.10,0.20,0.30,0.40,0.50,0.60" \
   --max-det 300
 
 
+
 Step3:
 bash ~/master-thesis/tools/step3_event_froc_val.sh \
   --run y11s_224_s42_b1024_baseS \
   --data /data/local/aschwab/data/realColon_224x224/data.yaml \
-  --imgsz 224
+  --imgsz 224 \
+  -l /data/local/aschwab/data/realColon_224x224/labels/val
 
 
 Step4:

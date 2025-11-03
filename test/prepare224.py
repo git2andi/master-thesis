@@ -105,7 +105,7 @@ val:   {os.path.join(dst_root, 'images/val')}
 test:  {os.path.join(dst_root, 'images/test')}
 
 nc: 1
-names: ["polyp"]
+names: ["lesion"]
 """)
     print(f"✔ Wrote {yaml_path}")
 
