@@ -1,161 +1,179 @@
-# Check original
-BASE=/data/local/aschwab/data/piccolo
+#!/usr/bin/env python3
+"""
+PICCOLO quick sanity checks (original + converted split).
+Usage:
+  python piccolo_sanity.py
+  python piccolo_sanity.py --orig /path/to/dataset --split /path/to/split
+"""
 
-for SPLIT in train validation test; do
-  echo "=== $SPLIT ==="
-  echo -n "  masks (Corrected.tif): "
-  find "$BASE/$SPLIT/masks"  -type f -iname '*corrected.tif' | wc -l
+from __future__ import annotations
 
-  echo -n "  void (Void.tif):      "
-  find "$BASE/$SPLIT/void"   -type f -iname '*void.tif'      | wc -l
-
-  echo -n "  polyps (.png):       "
-  find "$BASE/$SPLIT/polyps" -type f -iname '*.png'          | wc -l
-  echo
-done
-
-
-BASE=/data/local/aschwab/data/piccolo
-
-echo "=== TOTAL (train + validation + test) ==="
-echo -n "masks (Corrected.tif): "
-find "$BASE" -path '*/masks/*'  -type f -iname '*corrected.tif' | wc -l
-
-echo -n "void (Void.tif):      "
-find "$BASE" -path '*/void/*'   -type f -iname '*void.tif'      | wc -l
-
-echo -n "polyps (.png):       "
-find "$BASE" -path '*/polyps/*' -type f -iname '*.png'          | wc -l
-
-
-# Check new
-BASE=/data/local/aschwab/data/piccolo_split
-
-echo "=== Image / Label counts per split ==="
-for SPLIT in train val test; do
-  imgs=$(find "$BASE/images/$SPLIT" -type f -name '*.jpg' | wc -l)
-  lbls=$(find "$BASE/labels/$SPLIT" -type f -name '*.txt' | wc -l)
-  echo "$SPLIT: images=$imgs  labels=$lbls"
-done
-
-echo
-echo "=== Check 1-1 mapping (no missing label/image) ==="
-for SPLIT in train val test; do
-  echo "--- $SPLIT ---"
-  ( cd "$BASE" && \
-    comm -3 \
-      <(find "images/$SPLIT" -type f -name '*.jpg' \
-          | sed 's/^images\/'"$SPLIT"'\///; s/\.jpg$//' | sort) \
-      <(find "labels/$SPLIT" -type f -name '*.txt' \
-          | sed 's/^labels\/'"$SPLIT"'\///; s/\.txt$//' | sort) \
-  )
-done
-
-
-
-python - << 'PY'
+import argparse
 import json
 from pathlib import Path
+from typing import Dict, Iterable, Tuple
 
-BASE = Path("/data/local/aschwab/data/piccolo_split")
 
-splits = [
-    ("train", "coco_annotations_train.json"),
-    ("val",   "coco_annotations_val.json"),
-    ("test",  "coco_annotations_test.json"),
-]
+# util
+def _iter_files(root: Path) -> Iterable[Path]:
+    if not root.exists():
+        return ()
+    return (p for p in root.rglob("*") if p.is_file())
 
-overall_frames = 0
-overall_pos = 0
-overall_neg = 0
-overall_boxes = 0
+def count_suffix_ci(root: Path, suffix: str) -> int:
+    """Count root files - case-insensitive."""
+    suf = suffix.lower()
+    return sum(1 for p in _iter_files(root) if p.name.lower().endswith(suf))
 
-for split_name, coco_file in splits:
-    print(f"=== {split_name.upper()} ===")
-    images_dir = BASE / "images" / split_name
-    labels_dir = BASE / "labels" / split_name
-    coco_path = BASE / coco_file
 
-    if not coco_path.exists():
-        print(f"COCO file missing: {coco_path}")
-        continue
+def count_glob(root: Path, pattern: str) -> int:
+    """Count root files with same glob pattern"""
+    if not root.exists():
+        return 0
+    return sum(1 for _ in root.rglob(pattern) if _.is_file())
 
-    with coco_path.open("r") as f:
-        coco = json.load(f)
 
-    coco_images = coco.get("images", [])
-    coco_anns = coco.get("annotations", [])
+def stem_set(root: Path, ext: str) -> set[str]:
+    """Make common stem for root files"""
+    if not root.exists():
+        return set()
+    ext = ext.lower()
+    out = set()
+    for p in root.iterdir():
+        if p.is_file() and p.suffix.lower() == ext:
+            out.add(p.stem)
+    return out
 
-    # index annotations by image_id
-    ann_by_img = {}
-    for ann in coco_anns:
-        img_id = ann["image_id"]
-        ann_by_img.setdefault(img_id, 0)
-        ann_by_img[img_id] += 1
 
-    num_images = len(coco_images)
-    num_boxes = len(coco_anns)
-    num_pos = 0
-    num_neg = 0
+def read_json(path: Path) -> Dict:
+    with path.open("r", encoding="utf-8") as f:
+        return json.load(f)
 
-    # physical files
-    disk_images = sorted(images_dir.glob("*.jpg"))
-    disk_labels = sorted(labels_dir.glob("*.txt"))
 
-    print(f"COCO images:        {num_images}")
-    print(f"COCO annotations:   {num_boxes}")
-    print(f"Disk images:        {len(disk_images)}")
-    print(f"Disk labels:        {len(disk_labels)}")
+def count_yolo_lines(path: Path) -> int:
+    """Count non-empty lines in YOLO label (means its negative)"""
+    try:
+        txt = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        txt = path.read_text(encoding="latin-1")
+    return sum(1 for ln in txt.splitlines() if ln.strip())
 
-    if len(disk_images) != num_images:
-        print("WARNING: disk image count != COCO images")
 
-    if len(disk_labels) != num_images:
-        print("WARNING: disk label count != COCO images")
-
-    mismatched_yolo = 0
-    missing_label_files = 0
-
-    stem_to_label = {p.stem: p for p in disk_labels}
-
-    for img in coco_images:
-        img_id = img["id"]
-        fname = img["file_name"]
-        stem = Path(fname).stem
-
-        ann_count = ann_by_img.get(img_id, 0)
-        if ann_count > 0:
-            num_pos += 1
-        else:
-            num_neg += 1
-
-        lbl_path = stem_to_label.get(stem)
-        if lbl_path is None:
-            missing_label_files += 1
-            continue
-
-        with lbl_path.open("r") as lf:
-            yolo_lines = [ln for ln in lf.read().strip().splitlines() if ln.strip()]
-
-        if len(yolo_lines) != ann_count:
-            mismatched_yolo += 1
-
-    print(f"Frames (COCO images): {num_images}")
-    print(f"  Positive frames:    {num_pos}")
-    print(f"  Negative frames:    {num_neg}")
-    print(f"  Total boxes:        {num_boxes}")
-    print(f"Missing label files:  {missing_label_files}")
-    print(f"YOLO/COCO mismatches: {mismatched_yolo}")
+# Checks
+def check_original(orig: Path) -> None:
+    print("## Original PICCOLO")
+    totals = {"masks": 0, "void": 0, "polyps": 0}
+    for split in ("train", "validation", "test"):
+        masks = count_suffix_ci(orig / split / "masks", "corrected.tif")
+        voids = count_suffix_ci(orig / split / "void", "void.tif")
+        polyps = count_suffix_ci(orig / split / "polyps", ".png")
+        totals["masks"] += masks
+        totals["void"] += voids
+        totals["polyps"] += polyps
+        print(f"{split:10s}  masks={masks:4d}  void={voids:4d}  polyps={polyps:4d}")
+    print(f"{'TOTAL':10s}  masks={totals['masks']:4d}  void={totals['void']:4d}  polyps={totals['polyps']:4d}")
     print()
 
-    overall_frames += num_images
-    overall_pos += num_pos
-    overall_neg += num_neg
-    overall_boxes += num_boxes
 
-print("=== OVERALL (train + val + test) ===")
-print(f"Total frames:   {overall_frames}")
-print(f"Total positive: {overall_pos}")
-print(f"Total negative: {overall_neg}")
-print(f"Total boxes:    {overall_boxes}")
-PY
+def check_converted_basic(split_base: Path) -> None:
+    print("## Converted split (images/labels)")
+    for split in ("train", "val", "test"):
+        imgs_dir = split_base / "images" / split
+        lbls_dir = split_base / "labels" / split
+        n_imgs = count_glob(imgs_dir, "*.jpg")
+        n_lbls = count_glob(lbls_dir, "*.txt")
+        flag = "" if n_imgs == n_lbls else "  [WARN: images!=labels]"
+        print(f"{split:5s}  images={n_imgs:4d}  labels={n_lbls:4d}{flag}")
+    print()
+
+
+def check_coco_consistency(split_base: Path) -> None:
+    print("## COCO / YOLO consistency")
+
+    split_specs: Tuple[Tuple[str, str], ...] = (
+        ("train", "coco_annotations_train.json"), # Ensure naming is correct
+        ("val",   "coco_annotations_val.json"),
+        ("test",  "coco_annotations_test.json"),
+    )
+
+    overall = {"frames": 0, "pos": 0, "neg": 0, "boxes": 0, "yolo_mismatch": 0, "missing_lbl": 0}
+
+    for split, coco_name in split_specs:
+        coco_path = split_base / coco_name
+        # TODO make error check
+
+        coco = read_json(coco_path)
+        images = coco.get("images", [])
+        anns = coco.get("annotations", [])
+
+        # ann count per iid
+        ann_by_img: Dict[int, int] = {}
+        for a in anns:
+            img_id = a.get("image_id")
+            if img_id is not None:
+                ann_by_img[img_id] = ann_by_img.get(img_id, 0) + 1
+
+        labels_dir = split_base / "labels" / split
+        stem_to_lbl = {p.stem: p for p in labels_dir.glob("*.txt")} if labels_dir.exists() else {}
+
+        frames = len(images)
+        boxes = len(anns)
+        pos = 0
+        neg = 0
+        yolo_mismatch = 0
+        missing_lbl = 0
+
+        for img in images:
+            img_id = img.get("id")
+            fname = img.get("file_name", "")
+            stem = Path(fname).stem
+
+            gt = ann_by_img.get(img_id, 0)
+            if gt > 0:
+                pos += 1
+            else:
+                neg += 1
+
+            lbl = stem_to_lbl.get(stem)
+            if lbl is None:
+                missing_lbl += 1
+                continue
+
+            if count_yolo_lines(lbl) != gt:
+                yolo_mismatch += 1
+
+        overall["frames"] += frames
+        overall["pos"] += pos
+        overall["neg"] += neg
+        overall["boxes"] += boxes
+        overall["yolo_mismatch"] += yolo_mismatch
+        overall["missing_lbl"] += missing_lbl
+
+        print(
+            f"{split:5s}  frames={frames:4d}  boxes={boxes:4d}  pos={pos:4d}  neg={neg:4d}  "
+            f"missing_lbl={missing_lbl:3d}  yolo_mismatch={yolo_mismatch:3d}"
+        )
+
+    print(
+        f"{'TOTAL':5s}  frames={overall['frames']:4d}  boxes={overall['boxes']:4d}  "
+        f"pos={overall['pos']:4d}  neg={overall['neg']:4d}  "
+        f"missing_lbl={overall['missing_lbl']:3d}  yolo_mismatch={overall['yolo_mismatch']:3d}"
+    )
+    print()
+
+
+# Main
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--orig", type=Path, default=Path("/data/local/aschwab/data/piccolo"))
+    ap.add_argument("--split", type=Path, default=Path("/data/local/aschwab/data/piccolo_split"))
+    args = ap.parse_args()
+
+    check_original(args.orig)
+    check_converted_basic(args.split)
+    check_coco_consistency(args.split)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

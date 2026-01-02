@@ -1,21 +1,27 @@
-#!/usr/bin/env python3
+"""
+REAL-Colon sanity checks
+
+Usage:
+  python get_dataset_info_realcolon.py --root /data/local/aschwab/data/real_colon_allPos_allNeg
+
+  """
+
+
+
 import os
 import argparse
 from collections import Counter
 from typing import Tuple, List
 
-try:
-    from PIL import Image
-except ImportError:
-    raise ImportError("Pillow is required. Install with: pip install pillow")
+from PIL import Image
+
 
 
 SPLIT_CONFIGS = [
-    ["train_images", "validation_images", "test_images"],
-    ["train2", "val2", "test2"],
-    ["train", "val", "test"],
+    ["train_images", "validation_images", "test_images"], # original                       
+    ["train", "val", "test"],    # adapted original non padded
+    ["train2", "val2", "test2"], # padded
 ]
-
 
 def infer_splits(root: str) -> List[str]:
     entries = set(os.listdir(root))
@@ -42,7 +48,7 @@ def collect_image_sizes(root: str, splits: List[str]) -> Counter[Tuple[int, int]
         print(f"[INFO] Scanning {split_path} ...")
         for dirpath, dirnames, filenames in os.walk(split_path, followlinks=True):
             for fname in filenames:
-                if not fname.lower().endswith((".jpg", ".jpeg", ".png")):
+                if not fname.lower().endswith((".jpg")):
                     continue
                 fpath = os.path.join(dirpath, fname)
                 try:
@@ -63,7 +69,7 @@ def main():
         "--root",
         type=str,
         required=True,
-        help="Root containing split folders (e.g. .../realColon_640x640/images)",
+        default="/data/local/aschwab/data/real_colon_allPos_allNeg_onlyPatient",
     )
     args = parser.parse_args()
 
@@ -96,9 +102,6 @@ def gcd(a: int, b: int) -> int:
 
 if __name__ == "__main__":
     main()
-
-
-# python get_dataset_info.py --root /data/local/aschwab/data/real_colon_allPos_allNeg
 
 
 #=== Image size summary over all splits ===
