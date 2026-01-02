@@ -4,7 +4,7 @@ This repository contains the code developed for my Master’s thesis on evaluati
 
 ## Structure
 
-- [] **`preprocess/`**
+- [Done] **`preprocess/`**
   Dataset setup, filtering, and annotation preparation.
 
 - [Done] **`code/`**
