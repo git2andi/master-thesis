@@ -1,5 +1,3 @@
-# `eval/`
-
 This folder contains the main prediction evaluation pipeline and plotting utilities.
 
 ## Main entrypoint: `run_eval.py`
