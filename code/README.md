@@ -1,39 +1,23 @@
-````md
+
 # `code/`
-Small utilities for dataset inspection and qualitative verification.
 
-## `get_dataset_info_piccolo.py`
-Run:
-```bash
-python get_dataset_info_piccolo.py \
-  --orig /data/local/aschwab/data/piccolo \
-  --split /data/local/aschwab/data/piccolo_split
-````
+This folder contains utilities for dataset inspection, visualization, and qualitative verification.
 
-## `get_dataset_info_sun.py`
+## Contents
 
-Run:
-```bash
-python get_dataset_info_sun.py \
-  --base /data/local/aschwab/data/sun_split
-```
+* **`get_dataset_info_piccolo.py`**
+  Computes dataset statistics and consistency checks for the PICCOLO dataset after preprocessing and split conversion.
 
-## `get_dataset_info_realcolon.py`
-Run:
+* **`get_dataset_info_sun.py`**
+  Reports split-wise image and label counts, per-case distributions, and positive/negative case statistics for the SUN dataset.
 
-```bash
-python get_dataset_info_realcolon.py \
-  --root /data/local/aschwab/data/real_colon_allPos_allNeg_onlyPatient
-```
+* **`get_dataset_info_realcolon.py`**
+  Summarizes image resolution and aspect-ratio distributions across REAL-Colon dataset splits.
 
-## `verify_piccolo.py`
-Run:
-```bash
-python verify_piccolo.py
-```
+* **`verify_piccolo.py`**
+  Visualizes example PICCOLO images with ground-truth annotations to verify that newly created splits align with the original dataset.
 
-## `verify_sun.py`
-Run:
-```bash
-python verify_sun.py
-```
+* **`verify_sun.py`**
+  Visualizes example SUN images with ground-truth annotations to verify that newly created splits align with the original dataset.
+
+
