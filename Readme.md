@@ -13,7 +13,7 @@ This repository contains the code developed for my Master’s thesis on evaluati
 - [Done] **`detectron2/`**  
   Faster R-CNN training and inference using Detectron2.
 
-- [] **`ultralytics/`**
+- [Done] **`ultralytics/`**
   YOLO and RT-DETR training and inference using the Ultralytics framework.
 
 - [] **`eval/`**
