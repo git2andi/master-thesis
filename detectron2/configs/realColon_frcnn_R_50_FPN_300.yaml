@@ -17,7 +17,7 @@ MODEL:
     NUM_CLASSES: 1
     SCORE_THRESH_TEST: 0.001
   DEVICE: "cuda"
-  #WEIGHTS: "https://dl.fbaipublicfiles.com/detectron2/COCO-Detection/faster_rcnn_R_50_FPN_3x/137849458/model_final_280758.pkl"
+  WEIGHTS: "https://dl.fbaipublicfiles.com/detectron2/COCO-Detection/faster_rcnn_R_50_FPN_3x/137849458/model_final_280758.pkl"
 
 DATALOADER:
   FILTER_EMPTY_ANNOTATIONS: False
@@ -26,8 +26,8 @@ DATALOADER:
 SOLVER:
   IMS_PER_BATCH: 96
   BASE_LR: 0.02
-  MAX_ITER: 74800
-  STEPS: (44880, 59840) # 60% and 80%
+  MAX_ITER: 280450 #(1794907/96)*15
+  STEPS: (168270, 224360) # 60% and 80%
   AMP:
     ENABLED: True
 
@@ -36,8 +36,4 @@ TEST:
 
 SEED: 42
 
-OUTPUT_DIR: "outputs/frcnn_r50_fpn_realcolon_s42_300_lr/eval"
-
-
-# python custom_train.py --num-gpus 2 --dist-url auto --config-file ./configs/realColon_frcnn_R_50_FPN_300.yaml
-# python custom_train.py --config-file ./configs/realColon_frcnn_R_50_FPN_300_test.yaml --num-gpus 1 --dist-url auto --eval-only MODEL.WEIGHTS /home/stud/aschwab/master-thesis/detectron2/outputs/frcnn_r50_fpn_realcolon_s42_300_lr/model_0019999.pth
+OUTPUT_DIR: "path/to/output"

@@ -2,7 +2,7 @@ _BASE_: "COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml"
 
 DATASETS:
   TRAIN: ["realcolon_patient_train"]
-  TEST:  ["realcolon_patient_test"]
+  TEST:  ["realcolon_patient_test"] # ensure correct test path
 
 INPUT:
   MIN_SIZE_TRAIN: (640,)
@@ -17,26 +17,23 @@ MODEL:
     NUM_CLASSES: 1
     SCORE_THRESH_TEST: 0.001
   DEVICE: "cuda"
+  WEIGHTS: "path/to/best/model" # or via CLI
 
 DATALOADER:
   FILTER_EMPTY_ANNOTATIONS: False
   NUM_WORKERS: 12
 
 SOLVER:
-  IMS_PER_BATCH: 96
+  IMS_PER_BATCH: 1
   BASE_LR: 0.02
-  MAX_ITER: 267000
+  MAX_ITER: 267000 #(1706635/96)*15
   STEPS: (160000, 213500) # 60% and 80%
   AMP:
     ENABLED: True
 
 TEST:
-  EVAL_PERIOD: 53331 # every 3 epochs
+  EVAL_PERIOD: 17777 # every epoch
 
 SEED: 42
 
-#OUTPUT_DIR: "outputs/frcnn_r50_fpn_realcolon_s42_300_lr/eval"
-OUTPUT_DIR: "outputs/fasterrcnn_sun_realcolon/eval"
-
-
-# python custom_train.py --config-file configs/realColon_frcnn_R_50_FPN_640_test.yaml --dist-url auto --num-gpus 1 --eval-only MODEL.WEIGHTS /home/stud/aschwab/master-thesis/detectron2/outputs/frcnn_r50_fpn_sun_s42_640_lr/model_final.pth
+OUTPUT_DIR: "path/to/output/eval"

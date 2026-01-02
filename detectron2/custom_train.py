@@ -77,6 +77,3 @@ if __name__ == "__main__":
         dist_url=args.dist_url,
         args=(args,),
     )
-
-
-# python train_realcolon.py --config-file configs/realColon_frcnn_R_50_FPN_640.yaml --num-gpus 2 --resume
