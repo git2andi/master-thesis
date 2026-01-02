@@ -4,19 +4,19 @@ This repository contains the code developed for my Master’s thesis on evaluati
 
 ## Structure
 
-- **`preprocess/`**  []
+- [] **`preprocess/`**
   Dataset setup, filtering, and annotation preparation.
 
-- **`code/`**  [Done]
+- [Done] **`code/`**
   Dataset Visualization and plotting.
 
-- **`detectron2/`** [Done]  
+- [] **`detectron2/`**  
   Faster R-CNN training and inference using Detectron2.
 
-- **`ultralytics/`**  [Done]
+- [] **`ultralytics/`**
   YOLO and RT-DETR training and inference using the Ultralytics framework.
 
-- **`eval/`**  []
+- [] **`eval/`**
   Central evaluation pipeline for all models.
 
 ## Notes

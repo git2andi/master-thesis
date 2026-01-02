@@ -1,9 +1,7 @@
 
-# `code/`
-
 This folder contains utilities for dataset inspection, visualization, and qualitative verification.
 
-## Contents
+# Contents
 
 * **`get_dataset_info_piccolo.py`**
   Computes dataset statistics and consistency checks for the PICCOLO dataset after preprocessing and split conversion.
@@ -15,9 +13,9 @@ This folder contains utilities for dataset inspection, visualization, and qualit
   Summarizes image resolution and aspect-ratio distributions across REAL-Colon dataset splits.
 
 * **`verify_piccolo.py`**
-  Visualizes example PICCOLO images with ground-truth annotations to verify that newly created splits align with the original dataset.
+  Show PICCOLO images with gt ann to verify new splits align
 
 * **`verify_sun.py`**
-  Visualizes example SUN images with ground-truth annotations to verify that newly created splits align with the original dataset.
+  Show SUN images with gt ann to verify new splits align.
 
 
