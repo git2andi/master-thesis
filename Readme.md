@@ -16,7 +16,7 @@ This repository contains the code developed for my Master’s thesis on evaluati
 - [Done] **`ultralytics/`**
   YOLO and RT-DETR training and inference using the Ultralytics framework.
 
-- [] **`eval/`**
+- [Done] **`eval/`**
   Central evaluation pipeline for all models.
 
 ## Notes
