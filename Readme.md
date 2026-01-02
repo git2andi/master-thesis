@@ -1,4 +1,4 @@
-# Master’s Thesis Code Repository
+# Master Thesis Code Repository
 
 This repository contains the code developed for my Master’s thesis on evaluating real-time object detection models on clinical colonoscopy data. 
 
@@ -10,7 +10,7 @@ This repository contains the code developed for my Master’s thesis on evaluati
 - [Done] **`code/`**
   Dataset Visualization and plotting.
 
-- [] **`detectron2/`**  
+- [Done] **`detectron2/`**  
   Faster R-CNN training and inference using Detectron2.
 
 - [] **`ultralytics/`**
