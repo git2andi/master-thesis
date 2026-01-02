@@ -1,7 +1,7 @@
 ## REAL-Colon preprocessing (run in order)
 
 * **`1_export_coco_format_diff_neg.py`**
-  Exports REAL-Colon annotations in COCO format and performs negative-frame sampling.
+  Based on the original code. Exports REAL-Colon annotations in COCO format and performs negative-frame sampling.
   Configure the following variables inside the script before running:
 
   * `base_dataset_folder`   (path to original REAL-Colon)
@@ -19,9 +19,7 @@
   Configure inside the script:
 
   * `DATASET_ROOT` (same as step 1)
-  * `SOURCE_SPLITS = ["train", "val", "test"]`
-  * `TARGET_SUFFIX = "2"`
-
+  
 ## PICCOLO preprocessing
 
 * **`prepare_piccolo.py`**
