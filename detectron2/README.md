@@ -12,7 +12,7 @@ Detectron2 must be installed following the official instructions:
 conda create -n detectron2 python=3.10 -y
 conda activate detectron2
 ```
-Install a compatible version of PyTorch and torchvision before installing Detectron2, then follow the instructions.
+Install a compatible version of PyTorch and torchvision before installing Detectron2, (+ NumPy to avoid some issues :)), then follow the instructions.
 
 ## File Placement
 
