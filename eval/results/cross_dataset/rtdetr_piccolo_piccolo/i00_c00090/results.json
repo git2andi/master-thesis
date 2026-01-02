@@ -1,0 +1,58 @@
+{
+  "dataset": "piccolo",
+  "framework": "ultralytics",
+  "gt_path": "/data/local/aschwab/data/piccolo_split/coco_annotations_test.json",
+  "pred_path": "/home/stud/aschwab/master-thesis/missing/rtdetr_piccolo_piccolo/rtdetr_piccolo_piccolo.json",
+  "pred_parent": "rtdetr_piccolo_piccolo",
+  "pred_file": "rtdetr_piccolo_piccolo.json",
+  "n_frames": 333,
+  "n_preds": 99900,
+  "coco_metrics": {
+    "AP": 0.1855901059531295,
+    "AP50": 0.321402450688132,
+    "AP75": 0.19679318854879269,
+    "AP_small": -1.0,
+    "AP_medium": 0.039615785955164094,
+    "AP_large": 0.2173863431747672,
+    "AR@1": 0.27771084337349394,
+    "AR@10": 0.4394578313253012,
+    "AR@100": 0.6015060240963854,
+    "AR_small": -1.0,
+    "AR_medium": 0.332258064516129,
+    "AR_large": 0.6292358803986712
+  },
+  "iou_thr": 0.0,
+  "conf": 0.9,
+  "detection_metrics": {
+    "iou_thr": 0.0,
+    "conf": 0.9,
+    "tp": 0,
+    "fp": 0,
+    "fn": 332,
+    "n_gt": 332,
+    "n_pred": 0,
+    "precision": 0.0,
+    "recall": 0.0,
+    "sensitivity": 0.0,
+    "miss_rate": 1.0,
+    "f_scores": {
+      "F1": 0.0,
+      "F2": 0.0
+    }
+  },
+  "frame_metrics": {
+    "tp": 0,
+    "fp": 0,
+    "tn": 1,
+    "fn": 332,
+    "precision": 0.0,
+    "recall": 0.0,
+    "sensitivity": 0.0,
+    "specificity": 1.0,
+    "tpr": 0.0,
+    "fpr": 0.0,
+    "f1": 0.0,
+    "f2": 0.0
+  },
+  "lesion_metrics": null
+}

@@ -1,4 +1,0 @@
-matplotlib==3.7.5
-opencv-python==4.11.0.86
-torch==2.4.1
-torchvision==0.19.1

@@ -1,0 +1,58 @@
+{
+  "dataset": "piccolo",
+  "framework": "ultralytics",
+  "gt_path": "/data/local/aschwab/data/piccolo_split/coco_annotations_test.json",
+  "pred_path": "/home/stud/aschwab/master-thesis/missing/y8m_piccolo_piccolo/y8m_piccolo_piccolo.json",
+  "pred_parent": "y8m_piccolo_piccolo",
+  "pred_file": "y8m_piccolo_piccolo.json",
+  "n_frames": 333,
+  "n_preds": 1971,
+  "coco_metrics": {
+    "AP": 0.48736455592153316,
+    "AP50": 0.6734042329279231,
+    "AP75": 0.5501392060717049,
+    "AP_small": -1.0,
+    "AP_medium": 0.10946170195888921,
+    "AP_large": 0.5316871707676093,
+    "AR@1": 0.5424698795180721,
+    "AR@10": 0.6340361445783133,
+    "AR@100": 0.6364457831325302,
+    "AR_small": -1.0,
+    "AR_medium": 0.3,
+    "AR_large": 0.6710963455149502
+  },
+  "iou_thr": 0.0,
+  "conf": 0.05,
+  "detection_metrics": {
+    "iou_thr": 0.0,
+    "conf": 0.05,
+    "tp": 276,
+    "fp": 130,
+    "fn": 56,
+    "n_gt": 332,
+    "n_pred": 406,
+    "precision": 0.6798029556650246,
+    "recall": 0.8313253012048193,
+    "sensitivity": 0.8313253012048193,
+    "miss_rate": 0.1686746987951807,
+    "f_scores": {
+      "F1": 0.7479674796747968,
+      "F2": 0.7958477508650519
+    }
+  },
+  "frame_metrics": {
+    "tp": 276,
+    "fp": 0,
+    "tn": 1,
+    "fn": 56,
+    "precision": 1.0,
+    "recall": 0.8313253012048193,
+    "sensitivity": 0.8313253012048193,
+    "specificity": 1.0,
+    "tpr": 0.8313253012048193,
+    "fpr": 0.0,
+    "f1": 0.9078947368421052,
+    "f2": 0.8603491271820449
+  },
+  "lesion_metrics": null
+}

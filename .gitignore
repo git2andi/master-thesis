@@ -21,26 +21,24 @@ __pycache__/
 .env
 
 # Data & output
-data/
-output/
-results/
-models/
-checkpoints/
-yolov5/
 realColon_thesis/
 masterThesis/
 other_datasets/
+final/
+THESIS_RUNS/
+mising/
+detectron2/
+best_epochs/
+
 
 test/audit*/
 test/verify_labels_output/
 
-mmdetection/
 ultralytics/
-yolov5/
 wandb/
+delli1/
 
-RT-DETR/
-RepPointsV2/
-
+code/realColon_lesions
+code/pred_cache.db
 
 *.pt
