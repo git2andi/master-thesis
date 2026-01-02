@@ -27,14 +27,12 @@ other_datasets/
 final/
 THESIS_RUNS/
 mising/
-detectron2/
 best_epochs/
 
 
 test/audit*/
 test/verify_labels_output/
 
-ultralytics/
 wandb/
 delli1/
 

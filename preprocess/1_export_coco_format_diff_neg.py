@@ -5,7 +5,7 @@
     The script will also produce 3 splits (training, validation, testing), with same proportion across each dataset group (1-4) 
 
     Copyright 2023-, Cosmo Intelligent Medical Devices
-
+    Source: https://github.com/cosmoimd/real-colon-dataset
 
     ADAPTION for this Thesis:
     make negative count not based on full negative set but based on positive count.
