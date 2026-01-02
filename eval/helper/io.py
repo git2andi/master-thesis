@@ -16,8 +16,6 @@ def load_json_any(path: Path) -> Any:
 def make_output_dir(pred_path: Path) -> Path:
     """
     Store results in: <entry_script_dir>/results/<pred_parent_folder_name>/
-
-    entry_script_dir is derived from sys.argv[0] (e.g., run_eval.py), not from helper/io.py.
     """
     entry_script = Path(sys.argv[0]).resolve()
     base_dir = entry_script.parent

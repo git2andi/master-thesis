@@ -8,10 +8,7 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 from helper.utils import compute_iou_xywh
 
 
-# ----------------------------
-# Shared core for FROC + AFROC
-# ----------------------------
-
+# core for FROC + AFROC
 @dataclass(frozen=True)
 class _PreparedFrocInputs:
     images: List[Dict[str, Any]]
@@ -84,10 +81,8 @@ def _prepare_froc_inputs(
     )
 
 
-# ----------------------------
-# Core matcher: one-to-one per image, strict IoU > iou_thr
-# ----------------------------
 
+# Core matcher: one-to-one per image, strict IoU > iou_thr
 def _evaluate_at_conf_threshold(
     prepared: _PreparedFrocInputs,
     *,
@@ -119,7 +114,7 @@ def _evaluate_at_conf_threshold(
     neg_images_flagged: Set[Any] = set()
 
     for score, img_id, pb in dets:
-        # negative image => cannot match any GT
+        # negative image > cannot match any GT
         if img_id in prepared.neg_img_ids:
             fp_marks += 1
             neg_images_flagged.add(img_id)
@@ -134,7 +129,6 @@ def _evaluate_at_conf_threshold(
             if matched_flags[k]:
                 continue
             iou = compute_iou_xywh(gb, pb)
-            # STRICT: IoU > iou_thr
             if iou > iou_thr and iou > best_iou:
                 best_iou = iou
                 best_k = k
@@ -148,10 +142,6 @@ def _evaluate_at_conf_threshold(
     return detected_gt, fp_marks, neg_images_flagged
 
 
-# ----------------------------
-# Public: fixed confidence threshold points (recommended for overlays)
-# ----------------------------
-
 def compute_froc_points_for_conf_thresholds(
     coco_gt: Dict[str, Any],
     preds: List[Dict[str, Any]],
@@ -159,12 +149,6 @@ def compute_froc_points_for_conf_thresholds(
     iou_thr: float,
     conf_thresholds: List[float],
 ) -> Dict[str, Any]:
-    """
-    Compute FROC values at user-defined confidence thresholds.
-    This is ideal for:
-      - comparing multiple models on identical operating points
-      - writing to JSON and overlaying curves later
-    """
     prepared = _prepare_froc_inputs(coco_gt, preds)
 
     conf_sorted = sorted(float(c) for c in conf_thresholds)
@@ -213,9 +197,6 @@ def compute_afroc_points_for_conf_thresholds(
     iou_thr: float,
     conf_thresholds: List[float],
 ) -> Dict[str, Any]:
-    """
-    Compute AFROC values at user-defined confidence thresholds.
-    """
     prepared = _prepare_froc_inputs(coco_gt, preds)
 
     conf_sorted = sorted(float(c) for c in conf_thresholds)
@@ -260,10 +241,7 @@ def compute_afroc_points_for_conf_thresholds(
     }
 
 
-# ----------------------------
-# Optional: full curve by unique scores (your original approach)
-# ----------------------------
-
+# Optional: full curve by unique scores. Takes forever so not recommended
 @dataclass(frozen=True)
 class _ThresholdStep:
     score: float

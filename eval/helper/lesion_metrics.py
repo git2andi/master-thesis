@@ -31,10 +31,7 @@ def _safe_float(x: Any) -> Optional[float]:
 
 def _load_csv_as_dict(path: Path, key_fields: List[str]) -> Dict[str, Dict[str, str]]:
     """
-    Load CSV into dict: key -> row
-    - tries delimiter ',' and ';'
-    - tries multiple possible key columns
-    - strips whitespace and handles UTF-8 BOM
+      key -> row
     """
     out: Dict[str, Dict[str, str]] = {}
     if not path.exists():
@@ -68,7 +65,6 @@ def _load_csv_as_dict(path: Path, key_fields: List[str]) -> Dict[str, Dict[str, 
         if out:
             return out
 
-    print(f"[WARN] Could not parse CSV or find key column in: {path}")
     return out
 
 
@@ -97,28 +93,16 @@ def compute_lesion_frame_detection_stats(
     enable_timing: bool=True,
 ) -> Dict[str, Any]:
     """
-    REAL-Colon lesion-level stats.
-
-    Outputs:
-      - rows: per lesion:
-          n_frames_lesion, n_frames_detected, det_fraction,
-          first_gt_frame_idx, first_det_frame_idx, latency_frames,
-          fps, latency_seconds,
-          detected_within_1s/3s/5s
-      - summary:
-          - lesion-weighted detection % (any/25/50)
-          - frame-weighted % detected among all positive frames
-          - mean det_fraction across lesions
-          - detected within 1/3/5 seconds (lesion-weighted)
+    lesion-level stats.
     """
     lesion_info_path = DEFAULT_LESION_INFO
     video_info_path = DEFAULT_VIDEO_INFO
 
-    # CSV keys (confirmed by your headers)
+    # CSV keys
     lesion_info = _load_csv_as_dict(lesion_info_path, key_fields=["unique_object_id"])
     video_info = _load_csv_as_dict(video_info_path, key_fields=["unique_video_name"])
 
-    # --- GT: image -> (uid, gt_box), lesion -> frames(set) ---
+    # GT: image > (uid, gt_box), lesion > frames(set) ---
     gt_uid_boxes_by_img: Dict[str, List[Tuple[str, List[float]]]] = defaultdict(list)
     lesion_frames: Dict[str, Set[str]] = defaultdict(set)
 
@@ -131,7 +115,7 @@ def compute_lesion_frame_detection_stats(
         gt_uid_boxes_by_img[img_id].append((uid, bbox))
         lesion_frames[uid].add(img_id)
 
-    # --- preds: image -> pred boxes (score-filtered) ---
+    # preds: image > pred boxes (score-filtered)
     preds_by_img: Dict[str, List[List[float]]] = defaultdict(list)
     for det in preds_remapped:
         img_id = det.get("image_id")
@@ -143,7 +127,7 @@ def compute_lesion_frame_detection_stats(
             continue
         preds_by_img[img_id].append(bbox)
 
-    # --- detect lesion frames (single pass over GT images) ---
+    # detect lesion frames (single pass over GT images)
     lesion_detected_frames: Dict[str, Set[str]] = defaultdict(set)
 
     for img_id, gt_items in gt_uid_boxes_by_img.items():
@@ -164,9 +148,8 @@ def compute_lesion_frame_detection_stats(
                 if compute_iou_xywh(gb, pb) >= iou_thr:
                     lesion_detected_frames[uid].add(img_id)
                     remaining.remove(uid)
-                    # no break: a pred might match multiple lesions in rare cases
 
-    # --- aggregate per lesion ---
+    # aggregate per lesion
     rows: List[Dict[str, Any]] = []
 
     n_lesions = len(lesion_frames)
@@ -175,17 +158,12 @@ def compute_lesion_frame_detection_stats(
 
     det_fraction_sum = 0.0
 
-    # frame-weighted totals across all positive frames
     total_pos_frames = 0
     total_det_pos_frames = 0
 
-    # ----------------------------
-    # TIMING PARAMETERS (fixed)
-    # ----------------------------
     FPS_FIXED = 30.0
     FPS_STR_FIXED = "30"
-    MIN_DET_FRAMES_IN_WINDOW = 15  # "more than 14"
-    # ----------------------------
+    MIN_DET_FRAMES_IN_WINDOW = 15 
 
     # Exclude the two gap-affected lesions from mean first-detection time
     EXCLUDE_FROM_MEAN_FIRST_DET = {"003-014_1", "004-014_1"}
@@ -225,11 +203,9 @@ def compute_lesion_frame_detection_stats(
 
         latency_frames = max(0, first_det - first_gt) if (first_gt >= 0 and first_det >= 0) else -1
 
-        # ----------------------------
-        # TIMING CALC (changed)
-        # - fps fixed to 30
+
+        # TIMING CALC
         # - within_Xs requires >=15 detected frames inside [first_gt, first_gt + X*fps - 1]
-        # ----------------------------
         fps_val = FPS_FIXED
         fps_str = FPS_STR_FIXED
 
@@ -261,7 +237,6 @@ def compute_lesion_frame_detection_stats(
         n_within_1s += within_1s
         n_within_3s += within_3s
         n_within_5s += within_5s
-        # ----------------------------
 
         # lesion metadata from lesion_info.csv (keyed by unique_object_id == uid)
         les_meta = lesion_info.get(uid, {})
@@ -297,28 +272,20 @@ def compute_lesion_frame_detection_stats(
 
     summary = {
         "n_lesions": n_lesions,
-
-        # lesion-weighted detection rates
         "detected_any": n_any,
         "detected_25pct": n_25,
         "detected_50pct": n_50,
         "pct_detected_any": _pct(n_any, n_lesions),
         "pct_detected_25pct": _pct(n_25, n_lesions),
         "pct_detected_50pct": _pct(n_50, n_lesions),
-
-        # mean detection fraction across lesions (lesion-weighted)
         "mean_det_fraction": float(mean_det_fraction),
         "mean_det_fraction_pct": float(mean_det_fraction * 100.0),
-
-        # detected within X seconds (lesion-weighted)
         "detected_within_1s": int(n_within_1s) if enable_timing else None,
         "detected_within_3s": int(n_within_3s) if enable_timing else None,
         "detected_within_5s": int(n_within_5s) if enable_timing else None,
         "pct_detected_within_1s": _pct(n_within_1s, n_lesions) if enable_timing else None,
         "pct_detected_within_3s": _pct(n_within_3s, n_lesions) if enable_timing else None,
         "pct_detected_within_5s": _pct(n_within_5s, n_lesions) if enable_timing else None,
-
-        # mean first-detection time excluding known gap-outliers
         "mean_latency_frames_excl_outliers": _mean(latency_frames_for_mean) if enable_timing else None,
         "mean_latency_seconds_excl_outliers": _mean(latency_seconds_for_mean) if enable_timing else None,
         "n_latency_lesions_excl_outliers": len(latency_seconds_for_mean) if enable_timing else None,

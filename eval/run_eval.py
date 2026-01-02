@@ -341,22 +341,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-'''
-RT-DETR
-python run_eval.py --gt /data/local/aschwab/data/real_colon_allPos_allNeg_onlyPatient/test_ann2.json --framework ultralytics --dataset realcolon --pred /home/stud/aschwab/master-thesis/missing/rtdetr_rc_640_s42/eval/filtered_predictions_rtdetr_s42_newww.json
-
-YOLOv8
-python run_eval.py --gt /data/local/aschwab/data/real_colon_allPos_allNeg_onlyPatient/test_ann2.json --framework ultralytics --dataset realcolon --pred /home/stud/aschwab/master-thesis/best_epochs/cross_dataset/y8m_sun_realcolon.json
-
-YOLOv11
-python run_eval.py --gt /data/local/aschwab/data/real_colon_allPos_allNeg_onlyPatient/test_ann2.json --framework ultralytics --dataset realcolon --pred /home/stud/aschwab/master-thesis/best_epochs/cross_dataset/rtdetr_sun_realcolon.json
-
-Faster-RCNN
-python run_eval.py --gt /data/local/aschwab/data/real_colon_allPos_allNeg_onlyPatient/test_ann2.json --framework detectron2 --dataset realcolon --pred /home/stud/aschwab/master-thesis/best_epochs/cross_dataset/fasterrcnn_piccolo_realcolon.json
-
-python run_eval.py --gt /data/local/aschwab/data/piccolo_split/coco_annotations_test.json --framework detectron2 --dataset piccolo --pred /home/stud/aschwab/master-thesis/best_epochs/cross_dataset/fasterrcnn_realcolon_piccolo.json --conf 0.2
-
-python run_eval.py --gt /data/local/aschwab/data/sun_split/coco_annotations_test.json --framework detectron2 --dataset sun --pred /home/stud/aschwab/master-thesis/best_epochs/cross_dataset/rtdert_sun_realcolon.json --conf 0.2
-
-'''

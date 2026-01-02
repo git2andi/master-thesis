@@ -24,8 +24,6 @@ class FrameMetrics:
 
 # F-Scores
 def _fbeta_from_pr(precision: float, recall: float, *, beta: float) -> float:
-    if beta <= 0:
-        raise ValueError("beta must be > 0")
     b2 = beta * beta
     denom = b2 * precision + recall
     if denom <= 0.0:
@@ -42,7 +40,6 @@ def compute_frame_metrics(
 ) -> FrameMetrics:
     """
     Frame-level reduction of detections to a binary decision per frame.
-
       - Predicted positive frame: contains >=1 detection with score >= conf.
       - GT-positive frame: contains >=1 GT box.
       - TP_frame: GT-positive frame with >=1 detection (score>=conf) that matches any GT with IoU>iou_thr.
@@ -136,18 +133,6 @@ def compute_frame_tpr_fpr_sweep(
     dense_step: float = 0.005,
     coarse_step: float = 0.05,
 ) -> Dict[str, Any]:
-    """
-    Computes frame-level curves across a custom threshold grid and returns a JSON-ready dict.
-
-    Threshold grid:
-      - dense in [dense_lo, dense_hi] with dense_step
-      - coarse from dense_hi to 1.0 with coarse_step
-      - plus selected_thresholds (for TP/FP bars), all deduped
-
-    If predictions are prefiltered (e.g., min score >= 0.1), then:
-      - thresholds below that min score are removed
-      - curves and plots should start from that min score
-    """
     # --- Build GT boxes per frame (flatten across categories) ---
     gt_by_img_cat = _index_gt_boxes(coco_gt)
     gt_boxes_by_img: Dict[Any, List[List[float]]] = {}
@@ -158,7 +143,7 @@ def compute_frame_tpr_fpr_sweep(
         if flat:
             gt_boxes_by_img[img_id] = flat
 
-    # --- Determine minimum confidence actually present in preds (prefilter detection) ---
+    # find min conf
     min_conf_available = 1.0
     found_any_score = False
     for p in preds:
@@ -168,16 +153,14 @@ def compute_frame_tpr_fpr_sweep(
             if float(s) < min_conf_available:
                 min_conf_available = float(s)
     if not found_any_score:
-        # no predictions at all; still define a sane start
         min_conf_available = 0.001
 
-    # clamp (and avoid exactly 0 for plotting)
     min_conf_available = max(0.001, min(1.0, float(min_conf_available)))
 
-    # --- Predictions per frame (no thresholding here) ---
+    # Predictions per frame
     pred_by_img_cat = _index_pred_boxes(preds, conf=0.0)
 
-    # --- Precompute per-frame scores (efficient sweep) ---
+    # Precompute per-frame scores
     pos_scores: List[float] = []
     neg_scores: List[float] = []
 
@@ -219,13 +202,13 @@ def compute_frame_tpr_fpr_sweep(
     n_pos = len(pos_scores)
     n_neg = len(neg_scores)
 
-    # --- Build threshold set: dense region + coarse region + selected thresholds ---
+    # Build threshold set
     def _frange(lo: float, hi: float, step: float) -> List[float]:
         vals: List[float] = []
         if step <= 0:
             raise ValueError("step must be > 0")
         x = lo
-        # include hi with tolerance
+        
         while x <= hi + 1e-12:
             vals.append(round(float(x), 6))
             x += step
@@ -238,7 +221,6 @@ def compute_frame_tpr_fpr_sweep(
     sel = [float(t) for t in (selected_thresholds or [])]
     all_thr = sorted({t for t in (base + sel) if 0.0 <= t <= 1.0})
 
-    # If preds are prefiltered, drop below min_conf_available
     all_thr = [t for t in all_thr if t >= min_conf_available - 1e-12]
     if not all_thr:
         all_thr = [min_conf_available]
@@ -310,9 +292,7 @@ def compute_frame_tpr_fpr_sweep(
         "fn": out_fn,
     }
 
-    # --- Add "selected" subset (for TP/FP bars), robust to float mismatch ---
     if selected_thresholds is not None:
-        # Filter selected thresholds to those >= min_conf_available
         filtered_selected = [float(t) for t in selected_thresholds if float(t) >= min_conf_available - 1e-12]
 
         def _nearest_index(thr_list: List[float], target: float) -> int:
