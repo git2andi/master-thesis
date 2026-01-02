@@ -22,8 +22,8 @@ Each run writes its outputs into the `results/` folder.
 
 ## Aggregation: `summary_results.py`
 
-Aggregates multiple evaluation runs (e.g., 3 seeds per model).
-Paths must be set manually in the script via `MODEL_RESULTS`, e.g.:
+Aggregates multiple evaluation runs (3 seeds per model)
+Paths must be set manually in the script via `MODEL_RESULTS` (results.json)
 
 * `Faster R-CNN`: 3 result files (seeded)
 * `YOLOv8`: 3 result files (seeded)
@@ -37,8 +37,8 @@ The script generates a `.tsv` summary table.
 
 * **`plot_froc_afroc.py`**
   Plots aggregated FROC/AFROC curves across seeds per model.
-  Paths to the per-seed outputs must be set inside the script.
+  Paths to the per-seed outputs must be set inside the script. (curves.json)
 
 * **`plot_lesions_frames.py`**
   Plots lesion-level detection statistics across seeds per model and stores figures in `lesion_barplots_seeded/`.
-  Paths to the per-seed outputs must be set inside the script.
+  Paths to the per-seed outputs must be set inside the script. (curves.json)
