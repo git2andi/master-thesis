@@ -28,7 +28,7 @@ final/
 THESIS_RUNS/
 mising/
 best_epochs/
-
+eval_results/
 
 test/audit*/
 test/verify_labels_output/
